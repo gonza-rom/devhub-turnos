@@ -13,7 +13,7 @@ const PUBLIC_PATHS = [
   "/api/webhooks",
   "/_next",
   "/favicon.ico",
-  "/api/catalogo"
+  "/api/disponibilidad",  // ← público, para que el cliente pueda reservar
 ];
 
 const ADMIN_PATHS = [
@@ -32,13 +32,10 @@ const PLAN_PATHS_PERMITIDAS = [
 
 // APIs que un trial vencido NO puede usar
 const APIS_BLOQUEADAS_TRIAL = [
-  "/api/productos",
-  "/api/ventas",
-  "/api/movimientos",
-  "/api/caja",
-  "/api/categorias",
-  "/api/proveedores",
-  "/api/afip",
+  "/api/turnos",
+  "/api/servicios",
+  "/api/horarios",
+  "/api/bloqueos",
 ];
 
 function isPublic(pathname: string): boolean {

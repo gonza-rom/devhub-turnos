@@ -8,61 +8,40 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/// Representa un comercio suscripto a la plataforma
+// ── COPIADO DEL POS ──────────────────────────────────
+
 model Tenant {
-  id          String            @id @default(cuid())
-  nombre      String
-  email       String            @unique
-  slug        String            @unique
-  logoUrl     String?
-  telefono    String?
-  direccion   String?
-  ciudad      String?
-  plan        PlanTipo          @default(FREE)
-  activo      Boolean           @default(true)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  trialVenceAt DateTime?
-  cuit        String?
-  descripcion String?
-  facebook    String?
-  instagram   String?
-  provincia   String?
-  sitioWeb    String?
-  horariosTurnos Json?  // Almacena horarios personalizados por empresa
-  cajas       Caja[]
-  categorias  Categoria[]
-  movimientos Movimiento[]
-  precios     PrecioHistorico[]
-  productos   Producto[]
-  proveedores Proveedor[]
+  id           String    @id @default(cuid())
+  nombre       String
+  email        String    @unique
+  slug         String    @unique
+  logoUrl      String?
+  telefono     String?
+  direccion    String?
+  ciudad       String?
+  provincia    String?
+  descripcion  String?
+  instagram    String?
+  facebook     String?
+  sitioWeb     String?
+  plan         PlanTipo  @default(FREE)
+  activo       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // ── NUEVO ──
+  rubro          RubroTipo?
+  customDomain   String?   @unique
+  domainVerified Boolean   @default(false)
+
+  usuarios   UsuarioTenant[]
   suscripcion Suscripcion?
-  usuarios    UsuarioTenant[]
-  ventas      Venta[]
-  configuracionAfip ConfiguracionAFIP?
-  comprobantes      Comprobante[]
-  variantes  ProductoVariante[]
 
-
-  @@index([plan])
-  @@index([activo])
-  @@index([createdAt])
-}
-
-model Suscripcion {
-  id                 String    @id @default(cuid())
-  tenantId           String    @unique
-  plan               PlanTipo
-  estado             String    @default("pending")
-  mpPreapprovalId    String?
-  mpSubscriptionId   String?
-  proximoVencimiento DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([estado])
-  @@index([proximoVencimiento])
+  // ── NUEVO ──
+  servicios  ServicioTurno[]
+  horarios   HorarioDisponible[]
+  turnos     Turno[]
+  bloqueos   BloqueoHorario[]
 }
 
 model UsuarioTenant {
@@ -80,245 +59,94 @@ model UsuarioTenant {
   @@unique([tenantId, email])
   @@index([tenantId])
   @@index([supabaseId])
-  @@index([email])
-  @@index([tenantId, activo])
-  @@index([tenantId, rol])
 }
 
-model Categoria {
-  id          String      @id @default(cuid())
+model Suscripcion {
+  id                 String    @id @default(cuid())
+  tenantId           String    @unique
+  plan               PlanTipo
+  estado             String    @default("pending")
+  mpPreapprovalId    String?
+  mpSubscriptionId   String?
+  proximoVencimiento DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  tenant             Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+// ── NUEVO — TABLAS DE TURNOS ─────────────────────────
+
+model ServicioTurno {
+  id          String   @id @default(cuid())
   tenantId    String
   nombre      String
   descripcion String?
-  padreId     String?     // ← NUEVO
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  tenant      Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  padre       Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
-  hijas       Categoria[] @relation("SubCategorias")
-  productos   Producto[]
-
-  @@unique([tenantId, nombre])
-  @@index([tenantId])
-  @@index([padreId])  // ← NUEVO
-}
-
-model Proveedor {
-  id        String     @id @default(cuid())
-  tenantId  String
-  nombre    String
-  telefono  String?
-  email     String?
-  direccion String?
-  notas     String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  productos Producto[]
-  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
-  @@index([email])
-}
-
-model Producto {
-  id             String            @id @default(cuid())
-  tenantId       String
-  nombre         String
-  descripcion    String?
-  codigoProducto String?
-  codigoBarras   String?
-  precio         Float
-  costo          Float?
-  stock          Int               @default(0)
-  stockMinimo    Int               @default(5)
-  unidad         String?
-  imagen         String?
-  imagenes       String[]          @default([])
-  activo         Boolean           @default(true)
-  visibleCatalogo Boolean @default(false)
-  categoriaId    String?
-  proveedorId    String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  movimientos    Movimiento[]
-  precios        PrecioHistorico[]
-  categoria      Categoria?        @relation(fields: [categoriaId], references: [id])
-  proveedor      Proveedor?        @relation(fields: [proveedorId], references: [id])
-  tenant         Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ventaItems     VentaItem[]
-  tieneVariantes Boolean          @default(false)
-  variantes      ProductoVariante[]
-
-
-
-  @@unique([tenantId, codigoProducto])
-  @@unique([tenantId, codigoBarras])
-  @@index([tenantId])
-  @@index([tenantId, activo])
-  @@index([tenantId, categoriaId])
-  @@index([tenantId, nombre])
-  @@index([tenantId, stock])
-  @@index([tenantId, activo, nombre])
-  @@index([codigoBarras])
-  @@index([tenantId, activo, stock])
-  @@index([categoriaId])
-  @@index([proveedorId])
-}
-
-model PrecioHistorico {
-  id          String   @id @default(cuid())
-  tenantId    String
-  productoId  String
-  precioViejo Float
-  precioNuevo Float
-  motivo      String?
-  usuarioId   String?
+  precio      Float?
+  duracionMin Int
+  activo      Boolean  @default(true)
+  orden       Int      @default(0)
   createdAt   DateTime @default(now())
-  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime @updatedAt
 
-  @@index([tenantId])
-  @@index([productoId])
-  @@index([createdAt])
+  tenant Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  turnos Turno[]
+
+  @@index([tenantId, activo])
 }
 
-model Venta {
-  id                String       @id @default(cuid())
+model HorarioDisponible {
+  id         String  @id @default(cuid())
+  tenantId   String
+  diaSemana  Int     // 0=Dom 1=Lun ... 6=Sab
+  horaInicio String  // "09:00"
+  horaFin    String  // "20:00"
+  activo     Boolean @default(true)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, diaSemana])
+  @@index([tenantId])
+}
+
+model Turno {
+  id                String      @id @default(cuid())
   tenantId          String
-  total             Float
-  subtotal          Float?
-  descuento         Float?       @default(0)
-  recargo           Float?       @default(0)
-  metodoPago        String
-  clienteNombre     String?
-  clienteDni        String?
-  observaciones     String?
-  usuarioId         String?
-  usuarioNombre     String?
-  createdAt         DateTime     @default(now())
-  
-  // ← AGREGAR ESTOS 3 CAMPOS
-  cancelado         Boolean      @default(false)
+  servicioId        String
+  clienteNombre     String
+  clienteTelefono   String
+  clienteEmail      String?
+  fechaHora         DateTime
+  duracionMin       Int
+  estado            EstadoTurno @default(PENDIENTE)
+  notasCliente      String?
+  notasAdmin        String?
   canceladoAt       DateTime?
   motivoCancelacion String?
-  
-  movimientos       Movimiento[]
-  tenant            Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  items             VentaItem[]
-  comprobante       Comprobante?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  @@index([tenantId])
-  @@index([tenantId, metodoPago])
-  @@index([tenantId, usuarioId])
-  @@index([clienteNombre])
-  @@index([clienteDni])
-  @@index([tenantId, createdAt])
-  @@index([tenantId, metodoPago, createdAt])
-  @@index([tenantId, createdAt(sort: Desc)], map: "Venta_tenantId_createdAt_desc_idx")
-  @@index([tenantId, cancelado])  // ← AGREGAR ÍNDICE
-}
+  tenant   Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  servicio ServicioTurno @relation(fields: [servicioId], references: [id])
 
-model VentaItem {
-  id         String    @id @default(cuid())
-  ventaId    String
-  productoId String?   // ← agregar ?
-  nombre     String
-  cantidad   Int
-  precioUnit Float
-  subtotal   Float
-  producto   Producto? @relation(fields: [productoId], references: [id])  // ← agregar ?
-  venta      Venta     @relation(fields: [ventaId], references: [id], onDelete: Cascade)
-  varianteId  String?
-  talle       String?
-  color       String?
-  variante    ProductoVariante? @relation(fields: [varianteId], references: [id])
-
-
-  @@index([ventaId])
-  @@index([productoId])
-  @@index([productoId, ventaId])
-  @@index([ventaId, productoId])
-  @@index([varianteId])
-}
-
-model Movimiento {
-  id                String         @id @default(cuid())
-  tenantId          String
-  productoId        String
-  productoNombre    String
-  tipo              TipoMovimiento
-  cantidad          Int
-  stockAnterior     Int?
-  stockResultante   Int?
-  motivo            String?
-  ventaId           String?
-  usuarioId         String?
-  usuarioNombre     String?
-  cancelado         Boolean        @default(false)
-  motivoCancelacion String?
-  canceladoPor      String?
-  canceladoAt       DateTime?
-  createdAt         DateTime       @default(now())
-  producto          Producto       @relation(fields: [productoId], references: [id])
-  tenant            Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  venta             Venta?         @relation(fields: [ventaId], references: [id])
-
-  @@index([tenantId])
-  @@index([tenantId, productoId])
-  @@index([tenantId, tipo])
-  @@index([tenantId, cancelado, createdAt])
-  @@index([productoId, createdAt])
-  @@index([ventaId])
-  @@index([tenantId, tipo, createdAt])
-  @@index([tenantId, createdAt])
-  @@index([tenantId, createdAt(sort: Desc)], map: "Movimiento_tenantId_createdAt_desc_idx")
-}
-
-model Caja {
-  id            String           @id @default(cuid())
-  tenantId      String
-  usuarioId     String?
-  usuarioNombre String?
-  turno         String?  // "mañana", "tarde", "noche", "personalizado"
-  saldoInicial  Float
-  saldoFinal    Float?
-  saldoContado  Float?
-  diferencia    Float?
-  observaciones String?
-  abiertaAt     DateTime         @default(now())
-  cerradaAt     DateTime?
-  estado        String           @default("ABIERTA")
-  tenant        Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  movimientos   MovimientoCaja[]
-
-  @@index([tenantId])
+  @@index([tenantId, fechaHora])
   @@index([tenantId, estado])
-  @@index([tenantId, abiertaAt])
-  @@index([tenantId, estado, abiertaAt])
-  @@index([tenantId, cerradaAt(sort: Desc)], map: "Caja_tenantId_cerradaAt_desc_idx")
+  @@index([clienteTelefono])
 }
 
-model MovimientoCaja {
-  id            String             @id @default(cuid())
-  tenantId      String
-  cajaId        String
-  tipo          TipoMovimientoCaja
-  monto         Float
-  descripcion   String?
-  ventaId       String?
-  usuarioId     String?
-  usuarioNombre String?
-  createdAt     DateTime           @default(now())
-  metodoPago    String?
-  caja          Caja               @relation(fields: [cajaId], references: [id], onDelete: Cascade)
+model BloqueoHorario {
+  id         String   @id @default(cuid())
+  tenantId   String
+  fechaDesde DateTime
+  fechaHasta DateTime
+  motivo     String?
+  createdAt  DateTime @default(now())
 
-  @@index([cajaId])
-  @@index([tenantId])
-  @@index([tenantId, createdAt])
-  @@index([cajaId, tipo])
-  @@index([ventaId])
-  @@index([cajaId, createdAt])
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, fechaDesde])
 }
+
+// ── ENUMS ────────────────────────────────────────────
 
 enum PlanTipo {
   FREE
@@ -332,220 +160,18 @@ enum RolTenant {
   EMPLEADO
 }
 
-enum TipoMovimiento {
-  ENTRADA
-  SALIDA
-  VENTA
-  AJUSTE
+enum RubroTipo {
+  BARBERIA
+  DETAILING
+  ESTETICA
+  MEDICO
+  OTRO
 }
 
-enum TipoMovimientoCaja {
-  APERTURA
-  VENTA_EFECTIVO
-  INGRESO
-  EGRESO
-  CIERRE
-  VENTA_VIRTUAL
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURACIÓN AFIP
-// ═══════════════════════════════════════════════════════════════════════════
-
-model ConfiguracionAFIP {
-  id              String   @id @default(cuid())
-  tenantId        String   @unique
-  
-  // Datos del Emisor
-  cuit            String   // CUIT sin guiones: "20123456789"
-  razonSocial     String?  // Razón Social del contribuyente
-  puntoVenta      Int      @default(1)  // Punto de venta habilitado en AFIP
-  
-  // Condición Fiscal
-  // RI = Responsable Inscripto (emite A, B)
-  // MT = Monotributista (emite C)
-  // EX = Exento (emite C)
-  // CF = Consumidor Final (no emite)
-  condicionFiscal String   @default("MT") // RI, MT, EX, CF
-  
-  // Certificados AFIP (.crt y .key)
-  // Estos se generan en el portal de AFIP
-  certificado     String   @db.Text // Contenido del archivo .crt
-  clavePrivada    String   @db.Text // Contenido del archivo .key
-  
-  // Ambiente
-  // "testing" = Homologación (para pruebas)
-  // "produccion" = Producción (facturas reales)
-  ambiente        String   @default("testing")
-  
-  // Estado
-  activo          Boolean  @default(true)
-  ultimaConexion  DateTime?
-  
-  // Metadata
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  // Relaciones
-  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  @@index([tenantId])
-  @@map("configuraciones_afip")
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// COMPROBANTES FISCALES
-// ═══════════════════════════════════════════════════════════════════════════
-
-model Comprobante {
-  id                String   @id @default(cuid())
-  tenantId          String
-  ventaId           String?  @unique // Relación con Venta (opcional)
-  
-  // ─── Datos del Comprobante ─────────────────────────────────────────────
-  
-  puntoVenta        Int      // PtoVta (ej: 1, 2, 3)
-  
-  // Tipo de Comprobante (según AFIP) - CbteTipo
-  // 1  = Factura A
-  // 6  = Factura B
-  // 11 = Factura C
-  // 3  = Nota de Crédito A
-  // 8  = Nota de Crédito B
-  // 13 = Nota de Crédito C
-  tipoComprobante   Int
-  
-  numeroComprobante Int      // CbteDesde/CbteHasta (secuencial por tipo y PV)
-  
-  // ─── CAE (Código de Autorización Electrónica) ──────────────────────────
-  
-  cae               String   // CAE asignado por AFIP (14 dígitos)
-  caeFchVto         String   // Fecha vencimiento CAE (YYYYMMDD)
-  qrData            String?  @db.Text // Datos para generar QR (opcional)
-  
-  // ─── Datos del Cliente ─────────────────────────────────────────────────
-  
-  // Tipo de Documento
-  // 80 = CUIT
-  // 86 = CUIL  
-  // 96 = DNI
-  // 99 = Consumidor Final
-  docTipo           Int      @default(99)
-  
-  docNro            BigInt   @default(0) // 0 para Consumidor Final
-  clienteNombre     String?
-  clienteEmail      String?
-  clienteDireccion  String?
-  
-  // ─── Importes ──────────────────────────────────────────────────────────
-  
-  total             Float    // ImpTotal - Importe Total
-  neto              Float    // ImpNeto - Importe Neto Gravado
-  iva               Float    // ImpIVA - Importe IVA
-  descuento         Float    @default(0)
-  
-  // Importes adicionales según ARCA
-  importeNoGravado  Float    @default(0) // ImpTotConc - No gravado
-  importeExento     Float    @default(0) // ImpOpEx - Exento de IVA
-  importeTributos   Float    @default(0) // ImpTrib - Otros tributos
-  
-  // Moneda
-  monedaId          String   @default("PES") // MonId - PES, DOL, etc
-  monedaCotizacion  Float    @default(1)     // MonCotiz - Cotización
-  
-  // IVA puede ser 0%, 10.5%, 21%, 27%
-  // Se guarda como JSON según formato ARCA: [{ Id: 5, BaseImp: 100, Importe: 21 }]
-  ivaDetalle        Json?
-  
-  // ─── Items del Comprobante ─────────────────────────────────────────────
-  
-  // JSON con los productos/servicios
-  // [{ nombre: "...", cantidad: 1, precio: 100, subtotal: 100 }]
-  items             Json
-  
-  // ─── Estado y Observaciones ────────────────────────────────────────────
-  
-  fecha             DateTime // Fecha del comprobante
-  
-  // Resultado de AFIP
-  // "A" = Aprobado
-  // "R" = Rechazado
-  // "O" = Observado
-  resultado         String   @default("A")
-  
-  observaciones     String?  @db.Text // Mensajes de error o advertencia de AFIP
-  
-  // ─── Metadata ──────────────────────────────────────────────────────────
-  
-  // Concepto (según AFIP)
-  // 1 = Productos
-  // 2 = Servicios
-  // 3 = Productos y Servicios
-  concepto          Int      @default(1)
-  
-  // Método de pago (referencia)
-  metodoPago        String?
-  
-  // Usuario que emitió el comprobante
-  usuarioId         String?
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
-  // ─── Relaciones ────────────────────────────────────────────────────────
-  
-  // Relaciones
-  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  venta             Venta?   @relation(fields: [ventaId], references: [id], onDelete: SetNull)
-  
-  @@index([tenantId])
-  @@index([ventaId])
-  @@index([cae])
-  @@index([fecha])
-  @@index([numeroComprobante, puntoVenta, tipoComprobante])
-  @@map("comprobantes")
-}
-
-model ConfiguracionTurnos {
-  id        String   @id @default(cuid())
-  tenantId  String
-  
-  // Turno mañana
-  mananaInicio  String  // "08:30"
-  mananaFin     String  // "13:00"
-  
-  // Turno tarde
-  tardeInicio   String  // "17:30"
-  tardeFin      String  // "22:00"
-  
-  // Turno noche (opcional)
-  nocheInicio   String? // "22:00"
-  nocheFin      String? // "08:30"
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  @@unique([tenantId])
-}
-
-model ProductoVariante {
-  id         String      @id @default(cuid())
-  tenantId   String
-  productoId String
-  talle      String?
-  color      String?
-  stock      Int         @default(0)
-  precio     Float?
-  activo     Boolean     @default(true)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-
-  producto   Producto    @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  ventaItems VentaItem[]
-
-  @@unique([productoId, talle, color])
-  @@index([tenantId])
-  @@index([productoId])
-  @@index([productoId, activo])
+enum EstadoTurno {
+  PENDIENTE
+  CONFIRMADO
+  CANCELADO
+  COMPLETADO
+  AUSENTE
 }
