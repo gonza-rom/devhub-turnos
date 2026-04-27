@@ -1,12 +1,15 @@
 // app/api/plan/uso/route.ts
-// Devuelve el uso actual del tenant + días restantes del trial FREE
-
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getTenantContext } from "@/lib/tenant";
-import { PLAN_LIMITES } from "@/lib/utils";
 
-const TRIAL_DIAS = 7;
+const TRIAL_DIAS = 14;
+
+const PLAN_LIMITES: Record<string, { servicios: number; usuarios: number }> = {
+  FREE:       { servicios: 5,        usuarios: 1        },
+  PRO:        { servicios: Infinity, usuarios: Infinity },
+  ENTERPRISE: { servicios: Infinity, usuarios: Infinity },
+};
 
 export async function GET() {
   try {
@@ -19,16 +22,16 @@ export async function GET() {
 
     if (!tenant) return NextResponse.json({ ok: false, error: "No encontrado" }, { status: 404 });
 
-    const limites = PLAN_LIMITES[tenant.plan];
+    const limites = PLAN_LIMITES[tenant.plan] ?? PLAN_LIMITES.FREE;
 
-    const [productosActivos, usuariosActivos] = await Promise.all([
-      prisma.producto.count({ where: { tenantId, activo: true } }),
+    const [serviciosActivos, usuariosActivos] = await Promise.all([
+      prisma.servicioTurno.count({ where: { tenantId, activo: true } }),
       prisma.usuarioTenant.count({ where: { tenantId, activo: true } }),
     ]);
 
-    // Días restantes del trial (solo FREE)
+    // Trial solo para FREE
     let trialDiasRestantes: number | null = null;
-    let trialVencidoAt: string | null = null;
+    let trialVencidoAt:     string | null = null;
 
     if (tenant.plan === "FREE") {
       const msDesdeRegistro = Date.now() - new Date(tenant.createdAt).getTime();
@@ -44,14 +47,12 @@ export async function GET() {
       data: {
         plan: tenant.plan,
         uso: {
-          productos: productosActivos,
+          servicios: serviciosActivos,
           usuarios:  usuariosActivos,
         },
         limites: {
-          productos:           limites.productos           === Infinity ? null : limites.productos,
-          usuarios:            limites.usuarios            === Infinity ? null : limites.usuarios,
-          historialDias:       7, // FREE siempre 7 días
-          imagenesPorProducto: limites.imagenesPorProducto === Infinity ? null : limites.imagenesPorProducto,
+          servicios: limites.servicios === Infinity ? null : limites.servicios,
+          usuarios:  limites.usuarios  === Infinity ? null : limites.usuarios,
         },
         trial: {
           diasRestantes: trialDiasRestantes,

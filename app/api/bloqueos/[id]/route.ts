@@ -5,19 +5,21 @@ import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   _req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
+    const id = context.params.id;
+    
     const headersList = await headers();
     const tenantId    = headersList.get("x-tenant-id");
     if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
     const existente = await prisma.bloqueoHorario.findFirst({
-      where: { id: params.id, tenantId },
+      where: { id, tenantId },
     });
     if (!existente) return NextResponse.json({ error: "Bloqueo no encontrado" }, { status: 404 });
 
-    await prisma.bloqueoHorario.delete({ where: { id: params.id } });
+    await prisma.bloqueoHorario.delete({ where: { id } });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

@@ -3,25 +3,22 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, context: any) {
   try {
+    const id          = context.params.id;
     const headersList = await headers();
     const tenantId    = headersList.get("x-tenant-id");
     if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
     const body = await req.json();
 
-    // Verificar que pertenece al tenant
     const existente = await prisma.servicioTurno.findFirst({
-      where: { id: params.id, tenantId },
+      where: { id, tenantId },
     });
     if (!existente) return NextResponse.json({ error: "Servicio no encontrado" }, { status: 404 });
 
     const servicio = await prisma.servicioTurno.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(body.nombre      !== undefined && { nombre:      body.nombre.trim() }),
         ...(body.descripcion !== undefined && { descripcion: body.descripcion?.trim() || null }),
@@ -39,25 +36,21 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_req: Request, context: any) {
   try {
+    const id          = context.params.id;
     const headersList = await headers();
     const tenantId    = headersList.get("x-tenant-id");
     if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-    // Verificar que pertenece al tenant
     const existente = await prisma.servicioTurno.findFirst({
-      where: { id: params.id, tenantId },
+      where: { id, tenantId },
     });
     if (!existente) return NextResponse.json({ error: "Servicio no encontrado" }, { status: 404 });
 
-    // Verificar que no tenga turnos futuros asociados
     const turnosFuturos = await prisma.turno.count({
       where: {
-        servicioId: params.id,
+        servicioId: id,
         fechaHora:  { gte: new Date() },
         estado:     { notIn: ["CANCELADO", "COMPLETADO"] },
       },
@@ -69,7 +62,7 @@ export async function DELETE(
       }, { status: 409 });
     }
 
-    await prisma.servicioTurno.delete({ where: { id: params.id } });
+    await prisma.servicioTurno.delete({ where: { id } });
 
     return NextResponse.json({ ok: true });
   } catch (e) {

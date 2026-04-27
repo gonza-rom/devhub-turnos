@@ -1,21 +1,20 @@
 // lib/tenant.ts
-// Helpers para trabajar con el tenant en API Routes y Server Components.
-//
-// ARQUITECTURA:
-// El middleware inyecta x-tenant-id, x-user-id, x-user-rol y x-user-nombre
-// desde la cookie firmada (sin queries a DB). Acá solo leemos esos headers.
-
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 import { prisma } from "./prisma";
-import { PLAN_LIMITES } from "./utils";
 
-// ── Obtener el contexto completo desde los headers del middleware ──────────
+const PLAN_LIMITES: Record<string, { servicios: number; usuarios: number }> = {
+  FREE:       { servicios: 5,        usuarios: 1        },
+  PRO:        { servicios: Infinity, usuarios: Infinity },
+  ENTERPRISE: { servicios: Infinity, usuarios: Infinity },
+};
+
+// ── Contexto desde headers del middleware ─────────────────────────────────
 
 export async function getTenantContext(): Promise<{
-  tenantId: string;
-  usuarioId: string;
-  rol: string;
+  tenantId:     string;
+  usuarioId:    string;
+  rol:          string;
   nombreUsuario: string;
 }> {
   const headersList = await headers();
@@ -34,44 +33,42 @@ export async function getTenantContext(): Promise<{
   };
 }
 
-// ── Shortcut: solo el tenantId ────────────────────────────────────────────
-
 export async function getTenantId(): Promise<string> {
   const { tenantId } = await getTenantContext();
   return tenantId;
 }
 
-// ── Verificar si el tenant puede crear más productos (según su plan) ──────
+// ── Verificar límite de servicios según plan ──────────────────────────────
 
-export async function verificarLimiteProductos(tenantId: string): Promise<void> {
+export async function verificarLimiteServicios(tenantId: string): Promise<void> {
   const tenant = await prisma.tenant.findUnique({
-    where: { id: tenantId },
+    where:  { id: tenantId },
     select: {
-      plan: true,
-      _count: { select: { productos: { where: { activo: true } } } },
+      plan:   true,
+      _count: { select: { servicios: { where: { activo: true } } } },
     },
   });
 
   if (!tenant) throw new Error("Tenant no encontrado");
 
-  const limite = PLAN_LIMITES[tenant.plan].productos;
-  const actual = tenant._count.productos;
+  const limite = PLAN_LIMITES[tenant.plan]?.servicios ?? 5;
+  const actual = tenant._count.servicios;
 
   if (actual >= limite) {
     throw new Error(
-      `Límite de productos alcanzado (${actual}/${limite}). Actualizá tu plan para agregar más.`
+      `Límite de servicios alcanzado (${actual}/${limite}). Actualizá tu plan para agregar más.`
     );
   }
 }
 
-// ── Obtener tenant desde un request (para webhooks u otros casos) ─────────
+// ── Tenant desde request (webhooks) ──────────────────────────────────────
 
 export async function getTenantFromRequest(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
   if (!tenantId) return null;
 
   return prisma.tenant.findUnique({
-    where: { id: tenantId },
+    where:  { id: tenantId },
     select: { id: true, nombre: true, plan: true, activo: true },
   });
 }

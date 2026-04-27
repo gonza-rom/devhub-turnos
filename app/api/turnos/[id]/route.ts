@@ -3,28 +3,25 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, context: any) {
   try {
+    const id          = context.params.id;
     const headersList = await headers();
     const tenantId    = headersList.get("x-tenant-id");
     if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
     const { fechaHora, servicioId, duracionMin, notasAdmin } = await req.json();
 
-    // Verificar que el turno pertenece al tenant
     const turno = await prisma.turno.findFirst({
-      where: { id: params.id, tenantId },
+      where: { id, tenantId },
     });
     if (!turno) return NextResponse.json({ error: "Turno no encontrado" }, { status: 404 });
 
     const turnoActualizado = await prisma.turno.update({
-      where: { id: params.id },
+      where: { id },
       data: {
-        ...(fechaHora  && { fechaHora: new Date(fechaHora) }),
-        ...(servicioId && { servicioId }),
+        ...(fechaHora   && { fechaHora:   new Date(fechaHora) }),
+        ...(servicioId  && { servicioId }),
         ...(duracionMin && { duracionMin: parseInt(duracionMin) }),
         ...(notasAdmin !== undefined && { notasAdmin }),
       },
@@ -37,9 +34,9 @@ export async function PATCH(
       ok: true,
       turno: {
         ...turnoActualizado,
-        fechaHora: turnoActualizado.fechaHora.toISOString(),
-        servicio:  turnoActualizado.servicio.nombre,
-        precio:    turnoActualizado.servicio.precio,
+        fechaHora:   turnoActualizado.fechaHora.toISOString(),
+        servicio:    turnoActualizado.servicio.nombre,
+        precio:      turnoActualizado.servicio.precio,
         canceladoAt: turnoActualizado.canceladoAt?.toISOString() ?? null,
       },
     });
