@@ -1,7 +1,5 @@
 "use client";
 // app/(public)/auth/loading/page.tsx
-// Pantalla de transición entre login y dashboard.
-// Muestra spinner mientras refresh-session setea la cookie del tenant.
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -11,7 +9,6 @@ function LoadingHandler() {
   const redirectTo   = searchParams.get("redirect") ?? "/dashboard";
 
   useEffect(() => {
-    // Pequeño delay para que el spinner sea visible (evita flash)
     const timer = setTimeout(() => {
       window.location.href = `/api/auth/refresh-session?redirect=${encodeURIComponent(redirectTo)}`;
     }, 300);
@@ -26,40 +23,37 @@ export default function AuthLoadingPage() {
     <Suspense fallback={null}>
       <LoadingHandler />
       <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0a0a0a",
-        gap: "1.5rem",
-        fontFamily: "sans-serif",
+        minHeight: "100vh", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        background: "#0a0a0a", gap: "1.5rem", fontFamily: "sans-serif",
       }}>
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 36, height: 36,
-            background: "rgba(220,38,38,0.12)",
-            border: "1px solid rgba(220,38,38,0.25)",
+            background: "rgba(30,64,175,0.15)",
+            border: "1px solid rgba(30,64,175,0.35)",
             borderRadius: 10,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-              stroke="#DC2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
+              stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
             </svg>
           </div>
           <span style={{ fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>
-            DevHub POS
+            DevHub Turnos
           </span>
         </div>
 
         {/* Spinner */}
         <div style={{
           width: 36, height: 36,
-          border: "3px solid rgba(220,38,38,0.2)",
-          borderTopColor: "#DC2626",
+          border: "3px solid rgba(30,64,175,0.2)",
+          borderTopColor: "#1e40af",
           borderRadius: "50%",
           animation: "spin 0.7s linear infinite",
         }} />
