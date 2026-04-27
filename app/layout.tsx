@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "DevHub POS", template: "%s | DevHub POS" },
-  description: "Sistema de punto de venta para tu comercio",
+  title: { default: "DevHub Turnos", template: "%s | DevHub Turnos" },
+  description: "Sistema de turnos online para tu negocio",
   icons: { icon: "/favicon.ico" },
 };
 

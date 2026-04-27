@@ -1,10 +1,9 @@
 "use client";
 // app/(public)/auth/registro/RegistroForm.tsx
-// Con confirmación de email — muestra pantalla "revisá tu correo" después del registro
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, ArrowRight, Store, AlertCircle, Mail } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, CalendarDays, AlertCircle, Mail } from "lucide-react";
 
 export default function RegistroForm() {
   const [nombreUsuario,  setNombreUsuario]  = useState("");
@@ -35,7 +34,6 @@ export default function RegistroForm() {
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? "Error al crear la cuenta"); return; }
-      // Supabase mandó el email de confirmación → mostrar pantalla de espera
       setEsperandoEmail(true);
     } catch {
       setError("Error de conexión. Intentá de nuevo.");
@@ -44,7 +42,6 @@ export default function RegistroForm() {
     }
   }
 
-  // ── Pantalla "revisá tu correo" ──────────────────────────────
   if (esperandoEmail) {
     return (
       <div className="auth-shell">
@@ -52,10 +49,10 @@ export default function RegistroForm() {
         <div className="auth-card" style={{ textAlign: "center", padding: "2.5rem 2rem" }}>
           <div style={{
             width: 64, height: 64, borderRadius: "50%", margin: "0 auto 1.25rem",
-            background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.25)",
+            background: "rgba(30,64,175,0.12)", border: "1px solid rgba(30,64,175,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <Mail className="h-7 w-7" style={{ color: "#DC2626" }} />
+            <Mail className="h-7 w-7" style={{ color: "#3b82f6" }} />
           </div>
           <h2 style={{
             fontFamily: "'Syne', sans-serif", fontSize: "1.375rem",
@@ -79,7 +76,7 @@ export default function RegistroForm() {
               <button
                 onClick={() => setEsperandoEmail(false)}
                 style={{
-                  color: "#DC2626", background: "none", border: "none",
+                  color: "#3b82f6", background: "none", border: "none",
                   cursor: "pointer", fontWeight: 600, fontSize: "0.8125rem",
                 }}
               >
@@ -100,14 +97,14 @@ export default function RegistroForm() {
 
         <div className="auth-logo-wrap">
           <div className="auth-logo-icon">
-            <Store className="h-5 w-5" style={{ color: "#DC2626" }} />
+            <CalendarDays className="h-5 w-5" style={{ color: "#3b82f6" }} />
           </div>
-          <span className="auth-logo-text">DevHub POS</span>
+          <span className="auth-logo-text">DevHub Turnos</span>
         </div>
 
         <div className="auth-heading">
           <h1>Crear cuenta gratis</h1>
-          <p>Tu comercio digital en minutos</p>
+          <p>Tu negocio con turnos online en minutos</p>
         </div>
 
         {error && (
@@ -126,8 +123,8 @@ export default function RegistroForm() {
                 onChange={e => setNombreUsuario(e.target.value)} required disabled={cargando} />
             </div>
             <div className="auth-field">
-              <label htmlFor="nombreComercio">Nombre del comercio</label>
-              <input id="nombreComercio" type="text" placeholder="Mi Tienda"
+              <label htmlFor="nombreComercio">Nombre del negocio</label>
+              <input id="nombreComercio" type="text" placeholder="Mi Barbería"
                 value={nombreComercio} onChange={e => setNombreComercio(e.target.value)}
                 required disabled={cargando} />
             </div>
@@ -139,7 +136,6 @@ export default function RegistroForm() {
               value={email} onChange={e => setEmail(e.target.value)} required disabled={cargando} />
           </div>
 
-          {/* ✅ Campo teléfono */}
           <div className="auth-field">
             <label htmlFor="telefono">WhatsApp / Celular</label>
             <div className="auth-phone-wrap">
@@ -221,7 +217,7 @@ const authStyles = `
   .auth-glow {
     position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
     width: 600px; height: 400px;
-    background: radial-gradient(ellipse at center, rgba(220,38,38,0.11) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(30,64,175,0.13) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
   .auth-card {
@@ -232,8 +228,8 @@ const authStyles = `
   }
   .auth-logo-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
   .auth-logo-icon {
-    width: 36px; height: 36px; background: rgba(220,38,38,0.12);
-    border: 1px solid rgba(220,38,38,0.25); border-radius: 10px;
+    width: 36px; height: 36px; background: rgba(30,64,175,0.15);
+    border: 1px solid rgba(30,64,175,0.35); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
   }
   .auth-logo-text { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; }
@@ -260,9 +256,9 @@ const authStyles = `
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .auth-field input::placeholder { color: #3f3f46; }
-  .auth-field input:focus { border-color: rgba(220,38,38,0.45); box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+  .auth-field input:focus { border-color: rgba(30,64,175,0.55); box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
   .auth-field input:disabled { opacity: 0.5; cursor: not-allowed; }
-  .auth-field-hint { font-size: 0.6875rem; color: #d3d3d8ff; }
+  .auth-field-hint { font-size: 0.6875rem; color: #71717a; }
   .auth-phone-wrap {
     display: flex; align-items: center;
     background: #1a1a1a; border: 1px solid rgba(255,255,255,0.08);
@@ -270,7 +266,7 @@ const authStyles = `
     transition: border-color 0.15s, box-shadow 0.15s;
   }
   .auth-phone-wrap:focus-within {
-    border-color: rgba(220,38,38,0.45); box-shadow: 0 0 0 3px rgba(220,38,38,0.08);
+    border-color: rgba(30,64,175,0.55); box-shadow: 0 0 0 3px rgba(30,64,175,0.1);
   }
   .auth-phone-prefix {
     padding: 10px 12px; font-size: 0.875rem; color: #71717a;
@@ -296,16 +292,16 @@ const authStyles = `
   .auth-hints { display: flex; gap: 8px; flex-wrap: wrap; }
   .hint-ok, .hint-no { font-size: 0.6875rem; font-weight: 500; padding: 2px 8px; border-radius: 99px; transition: all 0.2s; }
   .hint-ok { background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
-  .hint-no { background: rgba(255,255,255,0.04); color: #d1d1d1ff; border: 1px solid rgba(255,255,255,0.06); }
+  .hint-no { background: rgba(255,255,255,0.04); color: #71717a; border: 1px solid rgba(255,255,255,0.06); }
   .auth-submit {
     margin-top: 0.25rem; width: 100%; display: flex; align-items: center;
     justify-content: center; gap: 8px; padding: 11px 20px;
-    background: #DC2626; border: none; border-radius: 10px;
+    background: #1e40af; border: none; border-radius: 10px;
     color: #fff; font-size: 0.9375rem; font-weight: 600;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
     transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   }
-  .auth-submit:hover:not(:disabled) { background: #B91C1C; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(220,38,38,0.3); }
+  .auth-submit:hover:not(:disabled) { background: #1e3a8a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(30,64,175,0.35); }
   .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
   .auth-spinner {
     display: inline-block; width: 18px; height: 18px;
@@ -316,6 +312,6 @@ const authStyles = `
   .auth-terms { text-align: center; font-size: 0.75rem; color: #3f3f46; margin: 0; line-height: 1.5; }
   .auth-terms a { color: #52525b; text-decoration: underline; }
   .auth-footer { margin-top: 1.5rem; text-align: center; font-size: 0.8125rem; color: #52525b; }
-  .auth-footer a { color: #DC2626; text-decoration: none; font-weight: 600; }
-  .auth-footer a:hover { color: #ef4444; }
+  .auth-footer a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+  .auth-footer a:hover { color: #60a5fa; }
 `;

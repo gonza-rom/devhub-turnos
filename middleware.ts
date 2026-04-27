@@ -13,7 +13,8 @@ const PUBLIC_PATHS = [
   "/api/webhooks",
   "/_next",
   "/favicon.ico",
-  "/api/disponibilidad",  // ← público, para que el cliente pueda reservar
+  "/api/disponibilidad",  // público — lo consume el frontend externo
+  "/api/reservar",        // público — lo consume el frontend externo
 ];
 
 const ADMIN_PATHS = [
@@ -30,7 +31,6 @@ const PLAN_PATHS_PERMITIDAS = [
   "/api/auth/logout",
 ];
 
-// APIs que un trial vencido NO puede usar
 const APIS_BLOQUEADAS_TRIAL = [
   "/api/turnos",
   "/api/servicios",
@@ -80,20 +80,24 @@ export async function middleware(request: NextRequest) {
   const tenantSession = await getTenantSessionFromRequest(request);
 
   if (!tenantSession) {
-    if (!pathname.startsWith("/api/auth/refresh-session")) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/api/auth/refresh-session";
-      url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
+    // Estas rutas necesitan usuario logueado pero no tenant session
+    if (
+      pathname.startsWith("/onboarding") ||
+      pathname.startsWith("/api/onboarding") ||
+      pathname.startsWith("/api/auth/refresh-session")
+    ) {
+      return supabaseResponse;
     }
-    return supabaseResponse;
+    const url = request.nextUrl.clone();
+    url.pathname = "/api/auth/refresh-session";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
   }
 
   const vencido = planEstaVencido(tenantSession.plan, tenantSession.planVenceAt);
 
   if (vencido && !isPlanPermitida(pathname)) {
     if (pathname.startsWith("/api/")) {
-      // Solo bloquear APIs de escritura
       if (isApiBloqueada(pathname)) {
         return NextResponse.json(
           {
@@ -104,9 +108,7 @@ export async function middleware(request: NextRequest) {
           { status: 402 }
         );
       }
-      // Otras APIs → dejar pasar
     }
-    // Páginas → dejar pasar, el banner se muestra en el layout
   }
 
   const requestHeaders = new Headers(request.headers);
@@ -115,7 +117,6 @@ export async function middleware(request: NextRequest) {
   requestHeaders.set("x-user-rol",     tenantSession.rol);
   requestHeaders.set("x-user-nombre",  tenantSession.nombre);
   requestHeaders.set("x-tenant-plan",  tenantSession.plan);
-  // ← Pasar si está vencido para que el layout muestre el banner
   requestHeaders.set("x-trial-vencido", vencido ? "1" : "0");
 
   const response = NextResponse.next({

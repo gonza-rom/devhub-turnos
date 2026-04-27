@@ -1,5 +1,4 @@
 // app/api/auth/refresh-session/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -23,9 +22,15 @@ export async function GET(req: NextRequest) {
       select: { tenantId: true, rol: true, nombre: true, activo: true },
     });
 
+    // ── Primer login: crear tenant ────────────────────────────
+    let esNuevoTenant = false;
+
     if (!usuarioTenant) {
-      const nombre         = user.user_metadata?.nombre        ?? "Usuario";
-      const nombreComercio = user.user_metadata?.nombreComercio ?? "Mi Comercio";
+      esNuevoTenant = true;
+
+      const nombre         = user.user_metadata?.nombre         ?? "Usuario";
+      const nombreComercio = user.user_metadata?.nombreComercio ?? "Mi Negocio";
+      const telefono       = user.user_metadata?.telefono?.trim() || null;
 
       const base = toSlug(nombreComercio);
       let slug = base, contador = 2;
@@ -33,19 +38,18 @@ export async function GET(req: NextRequest) {
         slug = `${base}-${contador++}`;
       }
 
-      const telefono = user.user_metadata?.telefono?.trim() || null;
-
       await prisma.$transaction(async (tx) => {
-      const tenant = await tx.tenant.create({
-        data: {
-          nombre: nombreComercio,
-          email: user.email!,
-          slug,
-          plan: "FREE",
-          trialVenceAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          telefono,
-        },
-      });
+        const tenant = await tx.tenant.create({
+          data: {
+            nombre:  nombreComercio,
+            email:   user.email!,
+            slug,
+            plan:    "FREE",
+            telefono,
+            // rubro se carga en el onboarding
+          },
+        });
+
         await tx.usuarioTenant.create({
           data: {
             tenantId:   tenant.id,
@@ -55,8 +59,15 @@ export async function GET(req: NextRequest) {
             rol:        "PROPIETARIO",
           },
         });
+
         await tx.suscripcion.create({
-          data: { tenantId: tenant.id, plan: "FREE", estado: "authorized" },
+          data: {
+            tenantId: tenant.id,
+            plan:     "FREE",
+            estado:   "trial",
+            // 14 días de trial desde la suscripcion
+            proximoVencimiento: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+          },
         });
       });
 
@@ -67,13 +78,14 @@ export async function GET(req: NextRequest) {
     }
 
     if (!usuarioTenant || !usuarioTenant.activo) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
+      return NextResponse.redirect(new URL("/auth/login", req.url));
     }
 
+    // ── Armar sesión ──────────────────────────────────────────
     const [tenant, suscripcion] = await Promise.all([
       prisma.tenant.findUnique({
         where:  { id: usuarioTenant.tenantId },
-        select: { plan: true, trialVenceAt: true, createdAt: true }, // ← agregar campos
+        select: { plan: true, rubro: true },
       }),
       prisma.suscripcion.findUnique({
         where:  { tenantId: usuarioTenant.tenantId },
@@ -81,16 +93,8 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const plan = (tenant?.plan ?? "FREE") as "FREE" | "PRO" | "ENTERPRISE";
-
-    // ← Para FREE usar trialVenceAt, para PRO/ENTERPRISE usar proximoVencimiento
-    const planVenceAt =
-      plan !== "FREE"
-        ? suscripcion?.proximoVencimiento?.getTime() ?? null
-        : tenant?.trialVenceAt?.getTime()
-          ?? (tenant?.createdAt
-            ? new Date(tenant.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000
-            : null);
+    const plan        = (tenant?.plan ?? "FREE") as "FREE" | "PRO" | "ENTERPRISE";
+    const planVenceAt = suscripcion?.proximoVencimiento?.getTime() ?? null;
 
     const token = await crearTenantSession({
       tenantId:  usuarioTenant.tenantId,
@@ -101,7 +105,12 @@ export async function GET(req: NextRequest) {
       planVenceAt,
     });
 
-    const response = NextResponse.redirect(new URL(redirectTo, req.url));
+    // Si es nuevo o no tiene rubro → onboarding
+    const destino = (esNuevoTenant || !tenant?.rubro)
+      ? "/onboarding"
+      : redirectTo;
+
+    const response = NextResponse.redirect(new URL(destino, req.url));
     setTenantCookie(response, token);
     return response;
 

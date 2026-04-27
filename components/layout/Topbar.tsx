@@ -5,32 +5,31 @@ import { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
-  LogOut, ChevronDown, Settings, Crown, Users, Bell, Menu, X,
-  Store, ChevronRight,
+  LogOut, ChevronDown, Settings, Crown, Users, Bell, Menu, X, CalendarDays, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import type { RolTenant, PlanTipo } from "@/types";
 import { NAV_ITEMS, ROUTE_LABELS, filtrarNavItems } from "@/lib/nav";
 
-/* ── Types ─────────────────────────────────────────────────── */
 const ROL_LABEL: Record<RolTenant, string> = {
   PROPIETARIO:   "Propietario",
   ADMINISTRADOR: "Administrador",
   EMPLEADO:      "Empleado",
 };
+
 const ROL_COLOR: Record<RolTenant, string> = {
   PROPIETARIO:   "text-amber-400 bg-amber-950/60 border-amber-800/60",
-  ADMINISTRADOR: "text-red-400   bg-red-950/60   border-red-800/60",
+  ADMINISTRADOR: "text-blue-400  bg-blue-950/60  border-blue-800/60",
   EMPLEADO:      "text-zinc-400  bg-zinc-800     border-zinc-700",
 };
+
 const PLAN_BADGE: Record<PlanTipo, { label: string; cls: string }> = {
-  FREE:       { label: "Free",       cls: "text-zinc-400 bg-zinc-800/80 border-zinc-700" },
-  PRO:        { label: "Pro",        cls: "text-red-400  bg-red-950/60  border-red-800/50" },
-  ENTERPRISE: { label: "Enterprise", cls: "text-amber-400 bg-amber-950/50 border-amber-800/50" },
+  FREE:       { label: "Free",       cls: "text-zinc-400  bg-zinc-800/80   border-zinc-700" },
+  PRO:        { label: "Pro",        cls: "text-blue-400  bg-blue-950/60   border-blue-800/50" },
+  ENTERPRISE: { label: "Enterprise", cls: "text-amber-400 bg-amber-950/50  border-amber-800/50" },
 };
 
-/* ── Props ─────────────────────────────────────────────────── */
 type Props = {
   nombreUsuario: string;
   emailUsuario:  string;
@@ -38,15 +37,11 @@ type Props = {
   nombreTenant?: string;
   plan?:         PlanTipo;
   logoUrl?:      string | null;
-  tieneAFIP?:    boolean;
 };
 
-/* ══════════════════════════════════════════════════════════════
-   TOPBAR
-══════════════════════════════════════════════════════════════ */
 export default function Topbar({
   nombreUsuario, emailUsuario, rolUsuario,
-  nombreTenant = "Mi comercio", plan = "FREE", logoUrl, tieneAFIP = false,
+  nombreTenant = "Mi negocio", plan = "FREE", logoUrl,
 }: Props) {
   const [menuAbierto,    setMenuAbierto]    = useState(false);
   const [drawerAbierto,  setDrawerAbierto]  = useState(false);
@@ -56,7 +51,7 @@ export default function Topbar({
 
   const esPropietario = rolUsuario === "PROPIETARIO";
   const esAdmin       = rolUsuario === "ADMINISTRADOR" || rolUsuario === "PROPIETARIO";
-  const navItems      = filtrarNavItems(NAV_ITEMS, rolUsuario, tieneAFIP);
+  const navItems      = filtrarNavItems(NAV_ITEMS, rolUsuario);
 
   useEffect(() => { setDrawerAbierto(false); }, [pathname]);
   useEffect(() => {
@@ -83,34 +78,24 @@ export default function Topbar({
 
   return (
     <>
-      {/* ── Header bar ─────────────────────────────────────── */}
       <header
         className="flex h-14 items-center justify-between px-4 md:px-5 flex-shrink-0"
-        style={{
-          background:   "var(--bg-surface)",
-          borderBottom: "1px solid var(--border-base)",
-          transition:   "background 0.2s ease",
-        }}
+        style={{ background: "var(--bg-surface)", borderBottom: "1px solid var(--border-base)" }}
       >
         {/* Left */}
         <div className="flex items-center gap-3 min-w-0">
-
-          {/* Hamburger — mobile only */}
           <button
             onClick={() => setDrawerAbierto(true)}
             className="md:hidden flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
             style={{ border: "1px solid var(--border-base)" }}
-            aria-label="Abrir menú"
           >
             <Menu className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
           </button>
 
-          {/* Mobile: tenant name */}
           <span className="md:hidden text-sm font-semibold truncate max-w-[140px]" style={{ color: "var(--text-primary)" }}>
             {nombreTenant}
           </span>
 
-          {/* Desktop: breadcrumb */}
           <nav className="hidden md:flex items-center gap-1.5">
             {crumbs.map((crumb, i) => (
               <span key={crumb.href} className="flex items-center gap-1.5">
@@ -126,8 +111,6 @@ export default function Topbar({
 
         {/* Right */}
         <div className="flex items-center gap-2">
-
-          {/* Bell */}
           <button
             className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
             style={{ border: "1px solid var(--border-base)" }}
@@ -137,7 +120,6 @@ export default function Topbar({
             <Bell className="h-4 w-4" style={{ color: "var(--text-faint)" }} />
           </button>
 
-          {/* User dropdown */}
           <div className="relative">
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
@@ -146,10 +128,8 @@ export default function Topbar({
               onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)"}
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
             >
-              <div
-                className="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-bold text-white flex-shrink-0"
-                style={{ background: "rgba(220,38,38,0.85)" }}
-              >
+              <div className="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-bold text-white flex-shrink-0"
+                style={{ background: "#1e40af" }}>
                 {initials}
               </div>
               <div className="hidden md:flex flex-col items-start leading-none">
@@ -163,19 +143,14 @@ export default function Topbar({
             {menuAbierto && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setMenuAbierto(false)} />
-                <div
-                  className="absolute right-0 top-full mt-2 z-20 w-60 rounded-xl py-1.5 overflow-hidden"
-                  style={{
-                    background: "var(--bg-card)",
-                    border:     "1px solid var(--border-md)",
-                    boxShadow:  "0 16px 40px rgba(0,0,0,0.3)",
-                  }}
-                >
+                <div className="absolute right-0 top-full mt-2 z-20 w-60 rounded-xl py-1.5 overflow-hidden"
+                  style={{ background: "var(--bg-card)", border: "1px solid var(--border-md)", boxShadow: "0 16px 40px rgba(0,0,0,0.3)" }}>
+
                   {/* User info */}
                   <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-base)" }}>
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white flex-shrink-0"
-                           style={{ background: "rgba(220,38,38,0.85)" }}>{initials}</div>
+                        style={{ background: "#1e40af" }}>{initials}</div>
                       <div className="min-w-0">
                         <p className="text-[13px] font-semibold truncate" style={{ color: "var(--text-primary)" }}>{nombreUsuario}</p>
                         <p className="text-[11px] truncate mt-0.5" style={{ color: "var(--text-secondary)" }}>{emailUsuario}</p>
@@ -188,9 +163,11 @@ export default function Topbar({
 
                   {esAdmin && (
                     <div className="py-1.5" style={{ borderBottom: "1px solid var(--border-base)" }}>
-                      <DDItem href="/configuracion"          icon={Settings} label="Mi comercio"        onClick={() => setMenuAbierto(false)} />
-                      <DDItem href="/configuracion/plan"     icon={Crown}    label="Plan y suscripción" onClick={() => setMenuAbierto(false)} iconColor="text-amber-500" />
-                      {esPropietario && <DDItem href="/configuracion/usuarios" icon={Users} label="Usuarios" onClick={() => setMenuAbierto(false)} />}
+                      <DDItem href="/configuracion"      icon={Settings} label="Mi negocio"         onClick={() => setMenuAbierto(false)} />
+                      <DDItem href="/configuracion/plan" icon={Crown}    label="Plan y suscripción" onClick={() => setMenuAbierto(false)} iconColor="text-amber-500" />
+                      {esPropietario && (
+                        <DDItem href="/configuracion/usuarios" icon={Users} label="Usuarios" onClick={() => setMenuAbierto(false)} />
+                      )}
                     </div>
                   )}
 
@@ -214,10 +191,9 @@ export default function Topbar({
         </div>
       </header>
 
-      {/* ── Mobile Drawer ───────────────────────────────────── */}
+      {/* ── Mobile Drawer ── */}
       <div
-        className={cn(
-          "fixed inset-0 z-40 md:hidden transition-opacity duration-300",
+        className={cn("fixed inset-0 z-40 md:hidden transition-opacity duration-300",
           drawerAbierto ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         )}
         style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
@@ -225,29 +201,20 @@ export default function Topbar({
       />
 
       <div
-        className={cn(
-          "fixed top-0 left-0 z-50 h-full w-72 flex flex-col md:hidden transition-transform duration-300 ease-out",
+        className={cn("fixed top-0 left-0 z-50 h-full w-72 flex flex-col md:hidden transition-transform duration-300 ease-out",
           drawerAbierto ? "translate-x-0" : "-translate-x-full"
         )}
-        style={{
-          background:  "var(--bg-surface)",
-          borderRight: "1px solid var(--border-base)",
-          transition:  "transform 0.3s ease-out, background 0.2s ease",
-        }}
+        style={{ background: "var(--bg-surface)", borderRight: "1px solid var(--border-base)" }}
       >
         {/* Drawer header */}
-        <div
-          className="flex items-center justify-between px-5 py-4 flex-shrink-0"
-          style={{ borderBottom: "1px solid var(--border-base)" }}
-        >
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0"
+          style={{ borderBottom: "1px solid var(--border-base)" }}>
           <div className="flex items-center gap-3">
-            <div
-              className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0"
-              style={{ background: logoUrl ? "transparent" : "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)" }}
-            >
+            <div className="h-8 w-8 rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0"
+              style={{ background: logoUrl ? "transparent" : "rgba(30,64,175,0.15)", border: "1px solid rgba(30,64,175,0.35)" }}>
               {logoUrl
                 ? <img src={logoUrl} alt={nombreTenant} className="h-8 w-8 object-cover" />
-                : <Store className="h-4 w-4" style={{ color: "#DC2626" }} />
+                : <CalendarDays className="h-4 w-4" style={{ color: "#3b82f6" }} />
               }
             </div>
             <div className="min-w-0">
@@ -258,14 +225,9 @@ export default function Topbar({
               </span>
             </div>
           </div>
-
-          <button
-            onClick={() => setDrawerAbierto(false)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors"
-            style={{ border: "1px solid var(--border-base)" }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)"}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}
-          >
+          <button onClick={() => setDrawerAbierto(false)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg"
+            style={{ border: "1px solid var(--border-base)" }}>
             <X className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
           </button>
         </div>
@@ -273,7 +235,7 @@ export default function Topbar({
         {/* Drawer nav */}
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-0.5">
           {navItems.map((item) => {
-            const Icon         = item.icon;
+            const Icon        = item.icon;
             const activoSimple = !item.children && (pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href + "/")));
             const activoGroup  = !!item.children && pathname.startsWith(item.href);
             const activo       = activoSimple || activoGroup;
@@ -281,81 +243,38 @@ export default function Topbar({
             return (
               <div key={item.href}>
                 <Link
-                  href={item.href}
-                  className="group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150 select-none"
-                  style={activo ? {
-                    color:      "var(--text-primary)",
-                    background: "rgba(220,38,38,0.14)",
-                    border:     "1px solid rgba(220,38,38,0.28)",
-                  } : {
-                    color:  "var(--text-secondary)",
-                    border: "1px solid transparent",
-                  }}
-                  onMouseEnter={e => {
-                    if (!activo) {
-                      (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)";
-                      (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!activo) {
-                      (e.currentTarget as HTMLElement).style.background = "transparent";
-                      (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
-                    }
-                  }}
+                  href={item.children ? item.children[0].href : item.href}
+                  className="relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150"
+                  style={activo
+                    ? { color: "var(--text-primary)", background: "rgba(30,64,175,0.14)", border: "1px solid rgba(30,64,175,0.28)" }
+                    : { color: "var(--text-secondary)", border: "1px solid transparent" }
+                  }
+                  onMouseEnter={e => { if (!activo) (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)"; }}
+                  onMouseLeave={e => { if (!activo) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                 >
                   {activo && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full" style={{ background: "#DC2626" }} />
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-0.5 rounded-full" style={{ background: "#1e40af" }} />
                   )}
-                  <Icon
-                    className="h-4 w-4 flex-shrink-0"
-                    style={{ color: activo ? "#ef4444" : "var(--text-faint)" }}
-                  />
+                  <Icon className="h-4 w-4 flex-shrink-0" style={{ color: activo ? "#3b82f6" : "var(--text-faint)" }} />
                   <span className="flex-1 truncate">{item.label}</span>
-                  {item.children
-                    ? <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", !activoGroup && "rotate-[-90deg]")}
-                        style={{ color: activoGroup ? "#ef4444" : "var(--text-faint)" }} />
-                    : activo
-                    ? <ChevronRight className="h-3.5 w-3.5" style={{ color: "rgba(220,38,38,0.6)" }} />
-                    : null
-                  }
+                  {activo && <ChevronRight className="h-3.5 w-3.5" style={{ color: "rgba(30,64,175,0.6)" }} />}
                 </Link>
 
                 {item.children && activoGroup && (
-                  <div className="ml-3 mt-0.5 mb-1 pl-3 space-y-0.5" style={{ borderLeft: "1px solid rgba(220,38,38,0.2)" }}>
+                  <div className="ml-3 mt-0.5 mb-1 pl-3 space-y-0.5" style={{ borderLeft: "1px solid rgba(30,64,175,0.25)" }}>
                     {item.children
                       .filter((s) => !s.soloPropietario || esPropietario)
                       .map((sub) => {
                         const SubIcon   = sub.icon;
-                        const subActivo = sub.href === "/configuracion"
-                          ? pathname === "/configuracion"
-                          : pathname.startsWith(sub.href);
+                        const subActivo = sub.href === "/configuracion" ? pathname === "/configuracion" : pathname.startsWith(sub.href);
                         return (
-                          <Link
-                            key={sub.href}
-                            href={sub.href}
+                          <Link key={sub.href} href={sub.href}
                             className="flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-all"
-                            style={subActivo
-                              ? { color: "#f87171", background: "rgba(220,38,38,0.08)" }
-                              : { color: "var(--text-muted)" }
-                            }
-                            onMouseEnter={e => {
-                              if (!subActivo) {
-                                (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)";
-                                (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
-                              }
-                            }}
-                            onMouseLeave={e => {
-                              if (!subActivo) {
-                                (e.currentTarget as HTMLElement).style.background = "transparent";
-                                (e.currentTarget as HTMLElement).style.color = "var(--text-muted)";
-                              }
-                            }}
+                            style={subActivo ? { color: "#60a5fa", background: "rgba(30,64,175,0.1)" } : { color: "var(--text-muted)" }}
+                            onMouseEnter={e => { if (!subActivo) (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)"; }}
+                            onMouseLeave={e => { if (!subActivo) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                           >
-                            {SubIcon && (
-                              <SubIcon className="h-3 w-3 flex-shrink-0"
-                                style={{ color: subActivo ? "#f87171" : "var(--color-red)" }} />
-                            )}
+                            {SubIcon && <SubIcon className="h-3 w-3 flex-shrink-0" style={{ color: subActivo ? "#60a5fa" : "var(--text-faint)" }} />}
                             {sub.label}
                           </Link>
                         );
@@ -367,15 +286,10 @@ export default function Topbar({
           })}
         </nav>
 
-        {/* Drawer footer — ThemeToggle + Logout */}
-        <div
-          className="px-3 py-3 flex-shrink-0 space-y-1"
-          style={{ borderTop: "1px solid var(--border-subtle)" }}
-        >
+        {/* Drawer footer */}
+        <div className="px-3 py-3 flex-shrink-0 space-y-1" style={{ borderTop: "1px solid var(--border-subtle)" }}>
           <ThemeToggle />
-          <button
-            onClick={handleLogout}
-            disabled={cargandoLogout}
+          <button onClick={handleLogout} disabled={cargandoLogout}
             className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors disabled:opacity-50"
             style={{ color: "#f87171", border: "1px solid rgba(220,38,38,0.2)" }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = "rgba(220,38,38,0.08)"}
@@ -390,24 +304,15 @@ export default function Topbar({
   );
 }
 
-/* ── Dropdown item ── */
 function DDItem({ href, icon: Icon, label, onClick, iconColor }: {
   href: string; icon: React.ElementType; label: string; onClick: () => void; iconColor?: string;
 }) {
   return (
-    <Link
-      href={href}
-      onClick={onClick}
+    <Link href={href} onClick={onClick}
       className="flex items-center gap-2.5 px-4 py-2 text-[13px] font-medium transition-colors"
       style={{ color: "var(--text-secondary)" }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)";
-        (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLElement).style.background = "transparent";
-        (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
-      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "var(--bg-hover-md)"; (e.currentTarget as HTMLElement).style.color = "var(--text-primary)"; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = "transparent"; (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
     >
       <Icon className={cn("h-4 w-4 flex-shrink-0", iconColor ?? "")} style={!iconColor ? { color: "var(--text-faint)" } : {}} />
       {label}

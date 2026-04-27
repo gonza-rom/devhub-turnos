@@ -1,20 +1,14 @@
 // lib/nav.ts
-// Definición centralizada de la navegación.
-// Importar desde acá en Sidebar.tsx y Topbar.tsx para evitar duplicación.
-
 import {
-  LayoutDashboard, ShoppingCart, Package, ArrowLeftRight,
-  BarChart3, Tag, Truck, Settings, Crown, Users, DollarSign,
-  History, FileText,HelpCircle,
+  LayoutDashboard, CalendarDays, CalendarClock,
+  Scissors, Clock, Users, Settings, Crown, UserCog,
 } from "lucide-react";
 import type { RolTenant } from "@/types";
 
-// ── Tipos ────────────────────────────────────────────────────
-
 export type SubItem = {
-  label:           string;
-  href:            string;
-  icon?:           React.ElementType;
+  label:            string;
+  href:             string;
+  icon?:            React.ElementType;
   soloPropietario?: boolean;
 };
 
@@ -23,65 +17,41 @@ export type NavItem = {
   href:       string;
   icon:       React.ElementType;
   soloAdmin?: boolean;
-  soloAFIP?:  boolean;
   children?:  SubItem[];
 };
 
-// ── Definición de items ──────────────────────────────────────
-
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard",           href: "/dashboard",        icon: LayoutDashboard },
-  { label: "Punto de venta",      href: "/ventas",           icon: ShoppingCart },
-  { label: "Historial de ventas", href: "/historial-ventas", icon: History },
-  { label: "Caja",                href: "/caja",             icon: DollarSign },
-  { label: "Productos",           href: "/productos",        icon: Package },
-  { label: "Movimientos",         href: "/movimientos",      icon: ArrowLeftRight },
-  { label: "Estadísticas",        href: "/estadisticas",     icon: BarChart3,  soloAdmin: true },
-  { label: "Categorías",          href: "/categorias",       icon: Tag,        soloAdmin: true },
-  { label: "Proveedores",         href: "/proveedores",      icon: Truck,      soloAdmin: true },
-  { label: "Comprobantes",        href: "/comprobantes",     icon: FileText,   soloAdmin: true, soloAFIP: true },
-  { label: "Ayuda",               href: "/ayuda",            icon: HelpCircle },
+  { label: "Dashboard",   href: "/dashboard",  icon: LayoutDashboard },
+  { label: "Turnos",      href: "/turnos",     icon: CalendarDays },
+  { label: "Calendario",  href: "/calendario", icon: CalendarClock },
+  { label: "Servicios",   href: "/servicios",  icon: Scissors,   soloAdmin: true },
+  { label: "Horarios",    href: "/horarios",   icon: Clock,      soloAdmin: true },
+  { label: "Clientes",    href: "/clientes",   icon: Users },
   {
     label: "Configuración", href: "/configuracion", icon: Settings, soloAdmin: true,
     children: [
-      { label: "Mi comercio",        href: "/configuracion" },
-      { label: "Plan y suscripción", href: "/configuracion/plan",     icon: Crown },
-      { label: "Usuarios",           href: "/configuracion/usuarios", icon: Users, soloPropietario: true },
-      { label: "Configuración AFIP", href: "/configuracion/afip",     icon: FileText },
+      { label: "Mi negocio",         href: "/configuracion",          icon: UserCog },
+      { label: "Plan y suscripción", href: "/configuracion/plan",     icon: Crown,  soloPropietario: true },
+      { label: "Usuarios",           href: "/configuracion/usuarios", icon: Users,  soloPropietario: true },
     ],
   },
 ];
 
-// ── Labels para breadcrumb (Topbar) ─────────────────────────
-
 export const ROUTE_LABELS: Record<string, string> = {
-  dashboard:         "Dashboard",
-  ventas:            "Punto de venta",
-  "historial-ventas": "Historial de ventas",
-  caja:              "Caja",
-  productos:         "Productos",
-  movimientos:       "Movimientos",
-  estadisticas:      "Estadísticas",
-  categorias:        "Categorías",
-  proveedores:       "Proveedores",
-  comprobantes:      "Comprobantes",
-  configuracion:     "Configuración",
-  plan:              "Plan y suscripción",
-  usuarios:          "Usuarios",
-  afip:              "Configuración AFIP",
-  nuevo:             "Nuevo",
-  editar:            "Editar",
+  dashboard:     "Dashboard",
+  turnos:        "Turnos",
+  calendario:    "Calendario",
+  servicios:     "Servicios",
+  horarios:      "Horarios",
+  clientes:      "Clientes",
+  configuracion: "Configuración",
+  plan:          "Plan y suscripción",
+  usuarios:      "Usuarios",
+  nuevo:         "Nuevo",
+  editar:        "Editar",
 };
 
-// ── Helper: filtra items según rol y features ────────────────
-
-export function filtrarNavItems(
-  items:     NavItem[],
-  rol:       RolTenant,
-  tieneAFIP: boolean = false,
-): NavItem[] {
+export function filtrarNavItems(items: NavItem[], rol: RolTenant): NavItem[] {
   const esAdmin = rol === "ADMINISTRADOR" || rol === "PROPIETARIO";
-  return items
-    .filter((i) => !i.soloAdmin || esAdmin)
-    .filter((i) => !i.soloAFIP  || tieneAFIP);
+  return items.filter((i) => !i.soloAdmin || esAdmin);
 }

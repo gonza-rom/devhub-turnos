@@ -95,17 +95,26 @@ model ServicioTurno {
 }
 
 model HorarioDisponible {
-  id         String  @id @default(cuid())
+  id         String          @id @default(cuid())
   tenantId   String
-  diaSemana  Int     // 0=Dom 1=Lun ... 6=Sab
-  horaInicio String  // "09:00"
-  horaFin    String  // "20:00"
-  activo     Boolean @default(true)
-
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  diaSemana  Int             // 0=Dom 1=Lun ... 6=Sab
+  activo     Boolean         @default(true)
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  franjas    HorarioFranja[]
 
   @@unique([tenantId, diaSemana])
   @@index([tenantId])
+}
+
+model HorarioFranja {
+  id         String            @id @default(cuid())
+  horarioId  String
+  horaInicio String            // "09:00"
+  horaFin    String            // "13:00"
+  orden      Int               @default(0)
+  horario    HorarioDisponible @relation(fields: [horarioId], references: [id], onDelete: Cascade)
+
+  @@index([horarioId])
 }
 
 model Turno {
