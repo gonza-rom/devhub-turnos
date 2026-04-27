@@ -1,4 +1,4 @@
-// app/api/turnos/[id]/route.ts
+// app/api/turnos/[id]/estado/route.ts
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +10,12 @@ export async function PATCH(req: Request, context: any) {
     const tenantId    = headersList.get("x-tenant-id");
     if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
-    const { fechaHora, servicioId, duracionMin, notasAdmin } = await req.json();
+    const { estado, motivoCancelacion } = await req.json();
+
+    const estadosValidos = ["PENDIENTE", "CONFIRMADO", "COMPLETADO", "CANCELADO", "AUSENTE"];
+    if (!estadosValidos.includes(estado)) {
+      return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
+    }
 
     const turno = await prisma.turno.findFirst({
       where: { id, tenantId },
@@ -20,26 +25,15 @@ export async function PATCH(req: Request, context: any) {
     const turnoActualizado = await prisma.turno.update({
       where: { id },
       data: {
-        ...(fechaHora   && { fechaHora:   new Date(fechaHora) }),
-        ...(servicioId  && { servicioId }),
-        ...(duracionMin && { duracionMin: parseInt(duracionMin) }),
-        ...(notasAdmin !== undefined && { notasAdmin }),
-      },
-      include: {
-        servicio: { select: { nombre: true, precio: true } },
+        estado,
+        ...(estado === "CANCELADO" && {
+          canceladoAt:       new Date(),
+          motivoCancelacion: motivoCancelacion ?? null,
+        }),
       },
     });
 
-    return NextResponse.json({
-      ok: true,
-      turno: {
-        ...turnoActualizado,
-        fechaHora:   turnoActualizado.fechaHora.toISOString(),
-        servicio:    turnoActualizado.servicio.nombre,
-        precio:      turnoActualizado.servicio.precio,
-        canceladoAt: turnoActualizado.canceladoAt?.toISOString() ?? null,
-      },
-    });
+    return NextResponse.json({ ok: true, turno: turnoActualizado });
   } catch (e) {
     console.error(e);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
