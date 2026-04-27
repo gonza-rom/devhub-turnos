@@ -13,8 +13,8 @@ const PUBLIC_PATHS = [
   "/api/webhooks",
   "/_next",
   "/favicon.ico",
-  "/api/disponibilidad",  // público — lo consume el frontend externo
-  "/api/reservar",        // público — lo consume el frontend externo
+  "/api/public",   // todas las rutas públicas del sistema de turnos
+  "/reservar",     // página pública de reservas (/reservar/[slug])
 ];
 
 const ADMIN_PATHS = [

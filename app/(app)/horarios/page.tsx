@@ -11,6 +11,11 @@ export default async function HorariosPage() {
     prisma.horarioDisponible.findMany({
       where:   { tenantId },
       orderBy: { diaSemana: "asc" },
+      include: {
+        franjas: {
+          orderBy: { orden: "asc" },
+        },
+      },
     }),
     prisma.bloqueoHorario.findMany({
       where:   { tenantId, fechaHasta: { gte: new Date() } },
@@ -18,28 +23,33 @@ export default async function HorariosPage() {
     }),
   ]);
 
-  // Asegurar que los 7 días estén presentes
+  // Asegurar los 7 días, con franjas vacías si no existen
   const diasCompletos = Array.from({ length: 7 }, (_, i) => {
     const existente = horarios.find(h => h.diaSemana === i);
-    return existente ?? {
-      id:         "",
-      tenantId,
-      diaSemana:  i,
-      horaInicio: "09:00",
-      horaFin:    "18:00",
-      activo:     false,
+    if (existente) {
+      return {
+        id:        existente.id,
+        diaSemana: existente.diaSemana,
+        activo:    existente.activo,
+        franjas:   existente.franjas.map(f => ({
+          id:         f.id,
+          horaInicio: f.horaInicio,
+          horaFin:    f.horaFin,
+          orden:      f.orden,
+        })),
+      };
+    }
+    return {
+      id:        "",
+      diaSemana: i,
+      activo:    false,
+      franjas:   [],
     };
   });
 
   return (
     <HorariosClient
-      horariosIniciales={diasCompletos.map(h => ({
-        id:         h.id,
-        diaSemana:  h.diaSemana,
-        horaInicio: h.horaInicio,
-        horaFin:    h.horaFin,
-        activo:     h.activo,
-      }))}
+      horariosIniciales={diasCompletos}
       bloqueosIniciales={bloqueos.map(b => ({
         id:         b.id,
         fechaDesde: b.fechaDesde.toISOString(),

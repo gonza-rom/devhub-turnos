@@ -1,4 +1,3 @@
-// app/api/onboarding/horarios/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -21,18 +20,33 @@ export async function POST(req: Request) {
     }
 
     await Promise.all(
-      horarios.map((h: {
+      horarios.map(async (h: {
         diaSemana:  number;
         horaInicio: string;
         horaFin:    string;
         activo:     boolean;
-      }) =>
-        prisma.horarioDisponible.upsert({
+      }) => {
+        const horario = await prisma.horarioDisponible.upsert({
           where:  { tenantId_diaSemana: { tenantId: ut.tenantId, diaSemana: h.diaSemana } },
-          create: { tenantId: ut.tenantId, diaSemana: h.diaSemana, horaInicio: h.horaInicio, horaFin: h.horaFin, activo: h.activo },
-          update: { horaInicio: h.horaInicio, horaFin: h.horaFin, activo: h.activo },
-        })
-      )
+          create: { tenantId: ut.tenantId, diaSemana: h.diaSemana, activo: h.activo },
+          update: { activo: h.activo },
+        });
+
+        await prisma.horarioFranja.deleteMany({
+          where: { horarioId: horario.id },
+        });
+
+        if (h.activo) {
+          await prisma.horarioFranja.create({
+            data: {
+              horarioId:  horario.id,
+              horaInicio: h.horaInicio,
+              horaFin:    h.horaFin,
+              orden:      0,
+            },
+          });
+        }
+      })
     );
 
     return NextResponse.json({ ok: true });
