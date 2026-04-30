@@ -1,7 +1,7 @@
 // lib/nav.ts
 import {
-  LayoutDashboard, CalendarDays, CalendarClock,
-  Scissors, Clock, Users, Settings, Crown, UserCog,
+  LayoutDashboard, CalendarDays,
+  Briefcase, Clock, Settings, Crown, UserCog, Users,
 } from "lucide-react";
 import type { RolTenant } from "@/types";
 
@@ -21,12 +21,10 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard",   href: "/dashboard",  icon: LayoutDashboard },
-  { label: "Turnos",      href: "/turnos",     icon: CalendarDays },
-  { label: "Calendario",  href: "/calendario", icon: CalendarClock },
-  { label: "Servicios",   href: "/servicios",  icon: Scissors,   soloAdmin: true },
-  { label: "Horarios",    href: "/horarios",   icon: Clock,      soloAdmin: true },
-  { label: "Clientes",    href: "/clientes",   icon: Users },
+  { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard },
+  { label: "Turnos",     href: "/turnos",     icon: CalendarDays },
+  { label: "Servicios",  href: "/servicios",  icon: Briefcase,   soloAdmin: true },
+  { label: "Horarios",   href: "/horarios",   icon: Clock,       soloAdmin: true },
   {
     label: "Configuración", href: "/configuracion", icon: Settings, soloAdmin: true,
     children: [
@@ -40,10 +38,8 @@ export const NAV_ITEMS: NavItem[] = [
 export const ROUTE_LABELS: Record<string, string> = {
   dashboard:     "Dashboard",
   turnos:        "Turnos",
-  calendario:    "Calendario",
   servicios:     "Servicios",
   horarios:      "Horarios",
-  clientes:      "Clientes",
   configuracion: "Configuración",
   plan:          "Plan y suscripción",
   usuarios:      "Usuarios",

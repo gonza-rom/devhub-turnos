@@ -48,7 +48,7 @@ const PLANES = [
   {
     key:         "PRO" as Plan,
     nombre:      "Pro",
-    precio:      "$15.000",
+    precio:      "$35.000",
     descripcion: "Para negocios que quieren crecer.",
     duracion:    "por mes · usuarios ilimitados",
     color:       "border-blue-500 ring-2 ring-blue-500/20",
@@ -216,10 +216,10 @@ function PlanPageContent() {
   const cancelado  = suscripcion?.estado === "cancelled";
   const esFree     = !esPro;
 
-  const ALIAS   = "gonza-rom";
+  const ALIAS   = "gonzarom";
   const CBU     = "4530000800017862828905";
   const TITULAR = "Gonzalo Misael Romero Quispe";
-  const MONTO   = "$15.000 ARS";
+  const MONTO   = "$35.000 ARS";
   const WA_URL  = `https://wa.me/543834946767?text=${encodeURIComponent("Hola! Hice una transferencia para el Plan Pro de DevHub Turnos. Te mando el comprobante.")}`;
 
   return (

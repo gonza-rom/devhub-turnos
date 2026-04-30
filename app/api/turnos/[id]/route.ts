@@ -45,3 +45,24 @@ export async function PATCH(req: Request, context: any) {
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
+
+export async function DELETE(_req: Request, context: any) {
+  try {
+    const id          = context.params.id;
+    const headersList = await headers();
+    const tenantId    = headersList.get("x-tenant-id");
+    if (!tenantId) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+    const turno = await prisma.turno.findFirst({
+      where: { id, tenantId },
+    });
+    if (!turno) return NextResponse.json({ error: "Turno no encontrado" }, { status: 404 });
+
+    await prisma.turno.delete({ where: { id } });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+  }
+}

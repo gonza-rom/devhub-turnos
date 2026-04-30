@@ -231,7 +231,7 @@ export default function Sidebar({ nombreTenant, plan, logoUrl, rol }: Props) {
                   className="flex items-center gap-3 flex-1 min-w-0"
                 >
                   <Icon className="h-4 w-4 flex-shrink-0"
-                    style={{ color: activo ? "#3b82f6" : "var(--text-faint)" }} />
+                    style={{ color: activo ? "#3b82f6" : "var(--text-primary)" }} />
                   <span className="flex-1 truncate">{item.label}</span>
                 </Link>
 

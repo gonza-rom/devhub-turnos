@@ -5,7 +5,7 @@ import { useState, useMemo } from "react";
 import {
   CalendarDays, List, ChevronLeft, ChevronRight,
   CheckCircle2, XCircle, AlertCircle, Clock, Phone,
-  User, Pencil, Check, X, MessageSquare, Calendar, Plus,
+  User, Pencil, Check, X, MessageSquare, Calendar, Plus, Trash2,
 } from "lucide-react";
 
 // ── Tipos ─────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
     const h = new Date(); return new Date(h.getFullYear(), h.getMonth(), 1);
   });
   const [turnoSeleccionado, setTurnoSeleccionado] = useState<Turno | null>(null);
-  const [modal,    setModal]    = useState<"detalle" | "editar" | "cancelar" | "nuevo" | null>(null);
+  const [modal,    setModal]    = useState<"detalle" | "editar" | "cancelar" | "nuevo" | "eliminar" | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error,    setError]    = useState("");
 
@@ -133,6 +133,22 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
     }
   }
 
+  async function eliminarTurno() {
+    if (!turnoSeleccionado) return;
+    setCargando(true); setError("");
+    try {
+      const res = await fetch(`/api/turnos/${turnoSeleccionado.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      setTurnos(ts => ts.filter(t => t.id !== turnoSeleccionado.id));
+      setModal(null);
+      setTurnoSeleccionado(null);
+    } catch {
+      setError("Error al eliminar el turno.");
+    } finally {
+      setCargando(false);
+    }
+  }
+
   async function editarTurno() {
     if (!turnoSeleccionado) return;
     setCargando(true); setError("");
@@ -177,7 +193,6 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
       if (!res.ok) throw new Error();
       const data = await res.json();
       setTurnos(ts => [...ts, data.turno].sort((a, b) => new Date(a.fechaHora).getTime() - new Date(b.fechaHora).getTime()));
-      // Reset form
       setNuevoNombre(""); setNuevoTelefono(""); setNuevoEmail("");
       setNuevoNotas(""); setNuevoServicio(servicios[0]?.id ?? "");
       setNuevoFecha(new Date().toISOString().split("T")[0]); setNuevoHora("10:00");
@@ -202,6 +217,13 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
   function abrirDetalle(t: Turno) {
     setTurnoSeleccionado(t);
     setModal("detalle");
+  }
+
+  function abrirEliminar(t: Turno, e: React.MouseEvent) {
+    e.stopPropagation();
+    setTurnoSeleccionado(t);
+    setError("");
+    setModal("eliminar");
   }
 
   // ── Calendario ───────────────────────────────────────────────
@@ -245,7 +267,6 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
         </div>
 
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {/* Botón nuevo turno */}
           <button
             onClick={() => { setError(""); setModal("nuevo"); }}
             style={{
@@ -257,7 +278,6 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
             <Plus size={15} /> Nuevo turno
           </button>
 
-          {/* Selector de vista */}
           <div style={{ display: "flex", gap: 4, padding: 4, background: "var(--bg-card)", border: "1px solid var(--border-base)", borderRadius: 10 }}>
             {([["lista", List, "Lista"], ["calendario", CalendarDays, "Calendario"]] as const).map(([v, Icon, label]) => (
               <button key={v} onClick={() => setVista(v)}
@@ -378,6 +398,10 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                         <X size={13} />
                       </button>
                     )}
+                    <button onClick={(e) => abrirEliminar(t, e)} title="Eliminar"
+                      style={{ padding: "5px 8px", borderRadius: 8, cursor: "pointer", background: "rgba(220,38,38,0.08)", border: "1px solid rgba(220,38,38,0.2)", color: "#f87171", display: "flex", alignItems: "center" }}>
+                      <Trash2 size={13} />
+                    </button>
                   </div>
                   <div style={{ padding: "3px 10px", borderRadius: 8, background: est?.bg, border: `1px solid ${est?.border}`, flexShrink: 0 }}>
                     <span style={{ fontSize: 11, fontWeight: 600, color: est?.color }}>{est?.label}</span>
@@ -462,7 +486,6 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
         <Modal onClose={() => { setModal(null); setError(""); }} titulo="Nuevo turno">
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {error && <p style={{ color: "#f87171", fontSize: 13, margin: 0 }}>{error}</p>}
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label style={labelStyle}>Nombre del cliente *</label>
@@ -475,13 +498,11 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                   placeholder="11 1234 5678" type="tel" style={inputStyle} />
               </div>
             </div>
-
             <div>
               <label style={labelStyle}>Email (opcional)</label>
               <input value={nuevoEmail} onChange={e => setNuevoEmail(e.target.value)}
                 placeholder="cliente@email.com" type="email" style={inputStyle} />
             </div>
-
             <div>
               <label style={labelStyle}>Servicio *</label>
               <select value={nuevoServicio} onChange={e => setNuevoServicio(e.target.value)} style={inputStyle}>
@@ -492,7 +513,6 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                 ))}
               </select>
             </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label style={labelStyle}>Fecha *</label>
@@ -503,14 +523,12 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                 <input type="time" value={nuevoHora} onChange={e => setNuevoHora(e.target.value)} style={inputStyle} />
               </div>
             </div>
-
             <div>
               <label style={labelStyle}>Notas internas (opcional)</label>
               <textarea value={nuevoNotas} onChange={e => setNuevoNotas(e.target.value)} rows={2}
                 placeholder="Notas visibles solo para el negocio..."
                 style={{ ...inputStyle, resize: "vertical" as const }} />
             </div>
-
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", paddingTop: 4 }}>
               <button onClick={() => { setModal(null); setError(""); }} style={btnStyle("#71717a")}>Cancelar</button>
               <button onClick={crearTurno} disabled={cargando}
@@ -542,35 +560,30 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                 </span>
               </div>
             </div>
-
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <InfoBox icon={Calendar} label="Fecha y hora" valor={`${formatFecha(turnoSeleccionado.fechaHora)} ${formatHora(turnoSeleccionado.fechaHora)}`} />
               <InfoBox icon={Clock} label="Servicio" valor={`${turnoSeleccionado.servicio} · ${turnoSeleccionado.duracionMin}min`} />
               {turnoSeleccionado.precio !== null && <InfoBox icon={Check} label="Precio" valor={`$${turnoSeleccionado.precio.toLocaleString("es-AR")}`} />}
               {turnoSeleccionado.clienteEmail && <InfoBox icon={MessageSquare} label="Email" valor={turnoSeleccionado.clienteEmail} />}
             </div>
-
             {turnoSeleccionado.notasCliente && (
               <div style={{ padding: 12, background: "var(--bg-hover)", border: "1px solid var(--border-subtle)", borderRadius: 10 }}>
                 <p style={{ fontSize: 11, color: "var(--text-faint)", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Nota del cliente</p>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{turnoSeleccionado.notasCliente}</p>
               </div>
             )}
-
             {turnoSeleccionado.notasAdmin && (
               <div style={{ padding: 12, background: "rgba(30,64,175,0.06)", border: "1px solid rgba(30,64,175,0.2)", borderRadius: 10 }}>
                 <p style={{ fontSize: 11, color: "#60a5fa", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Nota interna</p>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{turnoSeleccionado.notasAdmin}</p>
               </div>
             )}
-
             {turnoSeleccionado.motivoCancelacion && (
               <div style={{ padding: 12, background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.2)", borderRadius: 10 }}>
                 <p style={{ fontSize: 11, color: "#f87171", margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Motivo de cancelación</p>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>{turnoSeleccionado.motivoCancelacion}</p>
               </div>
             )}
-
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", paddingTop: 8, borderTop: "1px solid var(--border-subtle)" }}>
               {turnoSeleccionado.estado === "PENDIENTE" && (
                 <button onClick={() => cambiarEstado(turnoSeleccionado.id, "CONFIRMADO")} disabled={cargando} style={btnStyle("#22c55e")}>
@@ -600,6 +613,9 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
                   <XCircle size={14} /> Cancelar
                 </button>
               )}
+              <button onClick={() => { setError(""); setModal("eliminar"); }} disabled={cargando} style={btnStyle("#f87171")}>
+                <Trash2 size={14} /> Eliminar
+              </button>
             </div>
           </div>
         </Modal>
@@ -661,6 +677,49 @@ export default function TurnosClient({ turnosIniciales, servicios }: Props) {
               <button onClick={() => cambiarEstado(turnoSeleccionado.id, "CANCELADO", motivoCancel)} disabled={cargando}
                 style={{ ...btnStyle("#f87171"), background: "rgba(220,38,38,0.12)", border: "1px solid rgba(220,38,38,0.3)" }}>
                 {cargando ? "Cancelando..." : "Confirmar cancelación"}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ── MODAL ELIMINAR ── */}
+      {modal === "eliminar" && turnoSeleccionado && (
+        <Modal onClose={() => !cargando && setModal(null)} titulo="Eliminar turno">
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Ícono */}
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Trash2 size={20} color="#f87171" />
+              </div>
+            </div>
+
+            <div style={{ textAlign: "center" }}>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 6px" }}>
+                ¿Eliminar el turno de <strong>{turnoSeleccionado.clienteNombre}</strong>?
+              </p>
+              <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+                {formatFecha(turnoSeleccionado.fechaHora)} a las {formatHora(turnoSeleccionado.fechaHora)} · {turnoSeleccionado.servicio}
+              </p>
+              <p style={{ fontSize: 12, color: "#f87171", margin: "8px 0 0" }}>
+                Esta acción no se puede deshacer.
+              </p>
+            </div>
+
+            {error && <p style={{ color: "#f87171", fontSize: 13, margin: 0, textAlign: "center" }}>{error}</p>}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                onClick={() => setModal(null)}
+                disabled={cargando}
+                style={{ flex: 1, padding: "9px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", background: "var(--bg-hover-md)", border: "1px solid var(--border-md)", color: "var(--text-secondary)" }}>
+                Cancelar
+              </button>
+              <button
+                onClick={eliminarTurno}
+                disabled={cargando}
+                style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 16px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: cargando ? "not-allowed" : "pointer", background: "#DC2626", border: "none", color: "#fff", opacity: cargando ? 0.6 : 1 }}>
+                {cargando ? "Eliminando..." : <><Trash2 size={13} /> Sí, eliminar</>}
               </button>
             </div>
           </div>

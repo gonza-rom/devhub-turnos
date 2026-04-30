@@ -1,0 +1,58 @@
+// prisma/schema.prisma — campos nuevos para WhatsApp
+// Agregar en modelo UsuarioTenant:
+//   telefono     String?
+//
+// Agregar en modelo Tenant:
+//   notificacionesWA  Boolean  @default(true)
+//
+// ── DIFF completo de los modelos afectados ──────────────────
+
+model Tenant {
+  id           String    @id @default(cuid())
+  nombre       String
+  email        String    @unique
+  slug         String    @unique
+  logoUrl      String?
+  telefono     String?
+  direccion    String?
+  ciudad       String?
+  provincia    String?
+  descripcion  String?
+  instagram    String?
+  facebook     String?
+  sitioWeb     String?
+  plan         PlanTipo  @default(FREE)
+  activo       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  rubro            RubroTipo?
+  customDomain     String?   @unique
+  domainVerified   Boolean   @default(false)
+  notificacionesWA Boolean   @default(true)   // ← NUEVO
+
+  usuarios    UsuarioTenant[]
+  suscripcion Suscripcion?
+  servicios   ServicioTurno[]
+  horarios    HorarioDisponible[]
+  turnos      Turno[]
+  bloqueos    BloqueoHorario[]
+}
+
+model UsuarioTenant {
+  id         String    @id @default(cuid())
+  tenantId   String
+  supabaseId String    @unique
+  nombre     String
+  email      String
+  telefono   String?                          // ← NUEVO: fallback WA del dueño
+  rol        RolTenant @default(EMPLEADO)
+  activo     Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@index([supabaseId])
+}

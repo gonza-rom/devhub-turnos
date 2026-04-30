@@ -5,7 +5,7 @@ import { useState } from "react";
 import {
   CalendarDays, Clock, CheckCircle2, XCircle,
   AlertCircle, TrendingUp, Scissors, ChevronRight,
-  Phone, User,
+  Phone, User,Briefcase
 } from "lucide-react";
 
 // ── Tipos ─────────────────────────────────────────────────────
@@ -107,7 +107,7 @@ export default function DashboardClient({ turnosHoy, stats }: Props) {
           color="#8b5cf6"
         />
         <StatCard
-          icon={Scissors}
+          icon={Briefcase}
           label="Servicios"
           valor={stats.serviciosActivos}
           color="#1e40af"
@@ -268,7 +268,7 @@ export default function DashboardClient({ turnosHoy, stats }: Props) {
       {/* ── Acceso rápido ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
         <QuickAction href="/turnos"    icon={CalendarDays} label="Ver todos los turnos"  desc="Gestionar y confirmar" color="#3b82f6" />
-        <QuickAction href="/servicios" icon={Scissors}     label="Configurar servicios"  desc="Precios y duración"    color="#8b5cf6" />
+        <QuickAction href="/servicios" icon={Briefcase}     label="Configurar servicios"  desc="Precios y duración"    color="#8b5cf6" />
         <QuickAction href="/horarios"  icon={Clock}        label="Horarios de atención"  desc="Días y horas"          color="#1e40af" />
       </div>
 
