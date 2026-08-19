@@ -1,6 +1,5 @@
 // lib/tenant.ts
 import { headers } from "next/headers";
-import { NextRequest } from "next/server";
 import { prisma } from "./prisma";
 
 const PLAN_LIMITES: Record<string, { servicios: number; usuarios: number }> = {
@@ -59,16 +58,4 @@ export async function verificarLimiteServicios(tenantId: string): Promise<void> 
       `Límite de servicios alcanzado (${actual}/${limite}). Actualizá tu plan para agregar más.`
     );
   }
-}
-
-// ── Tenant desde request (webhooks) ──────────────────────────────────────
-
-export async function getTenantFromRequest(req: NextRequest) {
-  const tenantId = req.headers.get("x-tenant-id");
-  if (!tenantId) return null;
-
-  return prisma.tenant.findUnique({
-    where:  { id: tenantId },
-    select: { id: true, nombre: true, plan: true, activo: true },
-  });
 }

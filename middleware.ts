@@ -20,7 +20,6 @@ const PUBLIC_PATHS = [
 const ADMIN_PATHS = [
   "/admin",
   "/api/admin",
-  "/api/tenants",
 ];
 
 const PLAN_PATHS_PERMITIDAS = [
