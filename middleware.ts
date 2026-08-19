@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/auth/registro",
   "/auth/callback",
   "/auth/recuperar",
+  "/auth/nueva-password",
   "/auth/loading",
   "/api/auth",
   "/api/webhooks",
