@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { crearTurnoSinSolapamiento, TurnoSolapadoError } from "@/lib/reservas";
 
 export async function POST(req: Request) {
   try {
@@ -21,8 +22,9 @@ export async function POST(req: Request) {
     });
     if (!servicio) return NextResponse.json({ error: "Servicio no encontrado" }, { status: 404 });
 
-    const turno = await prisma.turno.create({
-      data: {
+    let turno;
+    try {
+      turno = await crearTurnoSinSolapamiento({
         tenantId,
         servicioId,
         clienteNombre:   clienteNombre.trim(),
@@ -30,13 +32,14 @@ export async function POST(req: Request) {
         clienteEmail:    clienteEmail?.trim() || null,
         fechaHora:       new Date(fechaHora),
         duracionMin:     servicio.duracionMin,
-        estado:          "PENDIENTE",
         notasAdmin:      notasAdmin?.trim() || null,
-      },
-      include: {
-        servicio: { select: { nombre: true, precio: true } },
-      },
-    });
+      });
+    } catch (e) {
+      if (e instanceof TurnoSolapadoError) {
+        return NextResponse.json({ error: e.message }, { status: 409 });
+      }
+      throw e;
+    }
 
     return NextResponse.json({
       ok: true,

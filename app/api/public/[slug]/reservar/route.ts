@@ -13,6 +13,8 @@ import {
   mensajeConfirmacionCliente,
   normalizarTelefono,
 } from "@/lib/whatsapp";
+import { checkRateLimit, obtenerIp } from "@/lib/rate-limit";
+import { crearTurnoSinSolapamiento, TurnoSolapadoError } from "@/lib/reservas";
 
 // ── Helpers de formato ────────────────────────────────────────
 
@@ -48,6 +50,17 @@ export async function POST(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const rl = checkRateLimit(`reservar:${obtenerIp(req)}`, {
+      limite:    5,
+      ventanaMs: 10 * 60 * 1000,
+    });
+    if (!rl.ok) {
+      return NextResponse.json(
+        { ok: false, error: "Demasiadas reservas desde esta conexión. Probá de nuevo en unos minutos." },
+        { status: 429 }
+      );
+    }
+
     const { slug } = await params;
     const body = await req.json();
 
@@ -104,34 +117,10 @@ export async function POST(
       return NextResponse.json({ ok: false, error: "No se puede reservar en el pasado" }, { status: 400 });
     }
 
-    // ── Verificar solapamiento (race condition) ────────────────
-    const turnoFin = new Date(fechaTurno.getTime() + servicio.duracionMin * 60 * 1000);
-
-    const turnos = await prisma.turno.findMany({
-      where: {
-        tenantId:  tenant.id,
-        estado:    { in: ["PENDIENTE", "CONFIRMADO"] },
-        fechaHora: {
-          gte: new Date(fechaTurno.getTime() - 24 * 60 * 60 * 1000),
-          lt:  turnoFin,
-        },
-      },
-      select: { fechaHora: true, duracionMin: true },
-    });
-
-    for (const t of turnos) {
-      const tFin = new Date(t.fechaHora.getTime() + t.duracionMin * 60 * 1000);
-      if (t.fechaHora < turnoFin && tFin > fechaTurno) {
-        return NextResponse.json(
-          { ok: false, error: "El horario ya no está disponible. Por favor elegí otro." },
-          { status: 409 }
-        );
-      }
-    }
-
-    // ── Crear el turno ────────────────────────────────────────
-    const turno = await prisma.turno.create({
-      data: {
+    // ── Crear el turno (verifica solapamiento de forma atómica) ─
+    let turno;
+    try {
+      turno = await crearTurnoSinSolapamiento({
         tenantId:        tenant.id,
         servicioId:      servicio.id,
         clienteNombre:   clienteNombre.trim(),
@@ -139,10 +128,14 @@ export async function POST(
         clienteEmail:    clienteEmail?.trim() || null,
         fechaHora:       fechaTurno,
         duracionMin:     servicio.duracionMin,
-        estado:          "PENDIENTE",
         notasCliente:    notasCliente?.trim() || null,
-      },
-    });
+      });
+    } catch (e) {
+      if (e instanceof TurnoSolapadoError) {
+        return NextResponse.json({ ok: false, error: e.message }, { status: 409 });
+      }
+      throw e;
+    }
 
     // ── Enviar WhatsApp al dueño (no bloquea la respuesta) ────
     // Primero intentamos el teléfono del comercio, después el del propietario
