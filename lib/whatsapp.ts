@@ -6,18 +6,17 @@ export function normalizarParaMeta(tel: string): string | null {
   const limpio  = tel.replace(/[\s\-\(\)]/g, "");
   const sinPlus = limpio.startsWith("+") ? limpio.slice(1) : limpio;
 
-  // 5493834944727 → 543834944727 (quita el 9 del móvil argentino)
+  // Ya tiene formato correcto con 9: 5493834944727 (13 dígitos)
   if (sinPlus.startsWith("549") && sinPlus.length === 13) {
-    return sinPlus.slice(0, 2) + sinPlus.slice(3);
-  }
-  // 543834944727 (12 dígitos) → ok
-  if (sinPlus.startsWith("54") && sinPlus.length === 12) {
     return sinPlus;
   }
-  // 03834944727 → quita el 0
+  // Tiene 54 pero sin 9: 543834944727 → agregar 9
+  if (sinPlus.startsWith("54") && sinPlus.length === 12) {
+    return sinPlus.slice(0, 2) + "9" + sinPlus.slice(2);
+  }
+  // Sin código de país, sin 0: 3834944727 (10 dígitos) → agregar 549
   const sinCero = sinPlus.startsWith("0") ? sinPlus.slice(1) : sinPlus;
-  // 10 dígitos → agrega 54
-  if (sinCero.length === 10) return `54${sinCero}`;
+  if (sinCero.length === 10) return `549${sinCero}`;
 
   return null;
 }
