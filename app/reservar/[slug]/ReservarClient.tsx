@@ -27,16 +27,18 @@ type Servicio = {
 };
 
 type Tenant = {
-  id:          string;
-  nombre:      string;
-  slug:        string;
-  rubro:       string | null;
-  descripcion: string | null;
-  logoUrl:     string | null;
-  telefono:    string | null;
-  ciudad:      string | null;
-  provincia:   string | null;
-  instagram:   string | null;
+  id:            string;
+  nombre:        string;
+  slug:          string;
+  rubro:         string | null;
+  colorReserva:  string | null;
+  temaReserva:   string | null;
+  descripcion:   string | null;
+  logoUrl:       string | null;
+  telefono:      string | null;
+  ciudad:        string | null;
+  provincia:     string | null;
+  instagram:     string | null;
 };
 
 type Props = {
@@ -118,8 +120,11 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
   const [errorGlobal,   setErrorGlobal]   = useState("");
   const [turnoCreado,   setTurnoCreado]   = useState<{ id: string; fechaHora: string } | null>(null);
 
-  const rubroColor = RUBRO_COLOR[tenant.rubro ?? "OTRO"] ?? "#3b82f6";
+  const rubroColor = tenant.colorReserva || RUBRO_COLOR[tenant.rubro ?? "OTRO"] || "#3b82f6";
   const RubroIcon  = RUBRO_ICON[tenant.rubro ?? "OTRO"] ?? HelpCircle;
+  const claro      = tenant.temaReserva === "CLARO";
+  const T          = crearTokens(claro);
+  const s          = crearEstilos(T);
 
   // ── Cargar slots cuando cambia fecha o servicio ────────────
   const cargarSlots = useCallback(async (f: Date, s: Servicio) => {
@@ -269,14 +274,14 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
               <div key={i} style={s.progressStep}>
                 <div style={{
                   ...s.progressDot,
-                  background: i < paso ? rubroColor : i === paso ? rubroColor : "rgba(255,255,255,0.08)",
-                  border:     `1.5px solid ${i <= paso ? rubroColor : "rgba(255,255,255,0.12)"}`,
+                  background: i < paso ? rubroColor : i === paso ? rubroColor : T.border08,
+                  border:     `1.5px solid ${i <= paso ? rubroColor : T.border12}`,
                   transform:  i === paso ? "scale(1.2)" : "scale(1)",
                 }} />
-                <span style={{ ...s.progressLabel, color: i === paso ? "#f4f4f5" : "#52525b" }}>
+                <span style={{ ...s.progressLabel, color: i === paso ? T.textPrimary : T.textFaint }}>
                   {label}
                 </span>
-                {i < 3 && <div style={{ ...s.progressLine, background: i < paso ? rubroColor : "rgba(255,255,255,0.1)" }} />}
+                {i < 3 && <div style={{ ...s.progressLine, background: i < paso ? rubroColor : T.border10 }} />}
               </div>
             ))}
           </div>
@@ -287,7 +292,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
           <div style={s.card}>
             <div style={s.cardHead}>
               <div style={{ ...s.stepIcon, background: `${rubroColor}15`, border: `1px solid ${rubroColor}25` }}>
-                <Scissors size={16} color={rubroColor} />
+                <RubroIcon size={16} color={rubroColor} />
               </div>
               <div>
                 <h2 style={s.cardTitle}>¿Qué servicio necesitás?</h2>
@@ -306,8 +311,8 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                     (e.currentTarget as HTMLButtonElement).style.background = `${rubroColor}08`;
                   }}
                   onMouseLeave={e => {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.08)";
-                    (e.currentTarget as HTMLButtonElement).style.background = "#191919";
+                    (e.currentTarget as HTMLButtonElement).style.borderColor = T.border08;
+                    (e.currentTarget as HTMLButtonElement).style.background = T.surface4;
                   }}
                 >
                   <div style={s.servicioTop}>
@@ -322,7 +327,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                     <p style={s.servicioDesc}>{sv.descripcion}</p>
                   )}
                   <div style={s.servicioDuracion}>
-                    <Clock size={11} color="#52525b" />
+                    <Clock size={11} color={T.textFaint} />
                     <span>{formatDuracion(sv.duracionMin)}</span>
                   </div>
                 </button>
@@ -331,7 +336,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
 
             {serviciosIniciales.length === 0 && (
               <div style={s.emptyState}>
-                <AlertCircle size={20} color="#52525b" />
+                <AlertCircle size={20} color={T.textFaint} />
                 <p>Este comercio aún no tiene servicios disponibles.</p>
               </div>
             )}
@@ -347,10 +352,10 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
 
             {servicio && (
               <div style={s.seleccionada}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Servicio:</span>
-                <span style={{ color: "#f4f4f5", fontWeight: 600 }}>{servicio.nombre}</span>
+                <span style={{ color: T.textMuted, fontSize: 12 }}>Servicio:</span>
+                <span style={{ color: T.textPrimary, fontWeight: 600 }}>{servicio.nombre}</span>
                 {servicio.precio && <span style={{ color: rubroColor, fontSize: 12 }}>{formatPrecio(servicio.precio)}</span>}
-                <span style={{ color: "#52525b", fontSize: 12 }}>{formatDuracion(servicio.duracionMin)}</span>
+                <span style={{ color: T.textFaint, fontSize: 12 }}>{formatDuracion(servicio.duracionMin)}</span>
               </div>
             )}
 
@@ -413,8 +418,8 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                         ...s.calDia,
                         background: seleccionado ? rubroColor
                           : esHoy ? `${rubroColor}15` : "transparent",
-                        color: deshabilitado ? "#3f3f46"
-                          : seleccionado ? "#fff" : "#e4e4e7",
+                        color: deshabilitado ? T.textFainter
+                          : seleccionado ? "#fff" : T.textSecondary,
                         border: esHoy && !seleccionado ? `1px solid ${rubroColor}40` : "1px solid transparent",
                         cursor: deshabilitado ? "not-allowed" : "pointer",
                         fontWeight: seleccionado ? 700 : esHoy ? 600 : 400,
@@ -438,8 +443,8 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
 
             {fecha && (
               <div style={s.seleccionada}>
-                <span style={{ color: "#71717a", fontSize: 12 }}>Fecha:</span>
-                <span style={{ color: "#f4f4f5", fontWeight: 600 }}>{formatFecha(fecha)}</span>
+                <span style={{ color: T.textMuted, fontSize: 12 }}>Fecha:</span>
+                <span style={{ color: T.textPrimary, fontWeight: 600 }}>{formatFecha(fecha)}</span>
               </div>
             )}
 
@@ -456,7 +461,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
             {loadingSlots && (
               <div style={s.loadingWrap}>
                 <Loader2 size={20} color={rubroColor} style={{ animation: "spin 1s linear infinite" }} />
-                <span style={{ color: "#71717a", fontSize: 13 }}>Cargando disponibilidad...</span>
+                <span style={{ color: T.textMuted, fontSize: 13 }}>Cargando disponibilidad...</span>
               </div>
             )}
 
@@ -475,9 +480,9 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                     onClick={() => { setHorario(slot); setPaso(3); }}
                     style={{
                       ...s.slotBtn,
-                      background: horario === slot ? rubroColor : "#191919",
-                      border:     `1px solid ${horario === slot ? rubroColor : "rgba(255,255,255,0.1)"}`,
-                      color:      horario === slot ? "#fff" : "#e4e4e7",
+                      background: horario === slot ? rubroColor : T.surface4,
+                      border:     `1px solid ${horario === slot ? rubroColor : T.border10}`,
+                      color:      horario === slot ? "#fff" : T.textSecondary,
                     }}
                     onMouseEnter={e => {
                       if (horario !== slot) {
@@ -487,8 +492,8 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                     }}
                     onMouseLeave={e => {
                       if (horario !== slot) {
-                        (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
-                        (e.currentTarget as HTMLButtonElement).style.background = "#191919";
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = T.border10;
+                        (e.currentTarget as HTMLButtonElement).style.background = T.surface4;
                       }
                     }}
                   >
@@ -510,7 +515,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
             {/* Resumen */}
             <div style={s.resumenBox}>
               <div style={s.resumenRow}>
-                <Scissors size={12} color={rubroColor} />
+                <RubroIcon size={12} color={rubroColor} />
                 <span>{servicio?.nombre}</span>
                 {servicio?.precio && <span style={{ color: rubroColor, marginLeft: "auto" }}>{formatPrecio(servicio.precio)}</span>}
               </div>
@@ -541,7 +546,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                   <User size={13} /> Nombre y apellido *
                 </label>
                 <input
-                  style={{ ...s.input, borderColor: errores.nombre ? "#ef4444" : "rgba(255,255,255,0.1)" }}
+                  style={{ ...s.input, borderColor: errores.nombre ? "#ef4444" : T.border10 }}
                   placeholder="Tu nombre completo"
                   value={datos.nombre}
                   onChange={e => setDatos(d => ({ ...d, nombre: e.target.value }))}
@@ -555,7 +560,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
                   <Phone size={13} /> Teléfono / WhatsApp *
                 </label>
                 <input
-                  style={{ ...s.input, borderColor: errores.telefono ? "#ef4444" : "rgba(255,255,255,0.1)" }}
+                  style={{ ...s.input, borderColor: errores.telefono ? "#ef4444" : T.border10 }}
                   placeholder="Ej: 3816-123456"
                   type="tel"
                   value={datos.telefono}
@@ -567,10 +572,10 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
               {/* Email */}
               <div style={s.formGroup}>
                 <label style={s.label}>
-                  <Mail size={13} /> Email <span style={{ color: "#52525b" }}>(opcional)</span>
+                  <Mail size={13} /> Email <span style={{ color: T.textFaint }}>(opcional)</span>
                 </label>
                 <input
-                  style={{ ...s.input, borderColor: errores.email ? "#ef4444" : "rgba(255,255,255,0.1)" }}
+                  style={{ ...s.input, borderColor: errores.email ? "#ef4444" : T.border10 }}
                   placeholder="tu@email.com"
                   type="email"
                   value={datos.email}
@@ -582,7 +587,7 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
               {/* Notas */}
               <div style={s.formGroup}>
                 <label style={s.label}>
-                  <MessageSquare size={13} /> Notas <span style={{ color: "#52525b" }}>(opcional)</span>
+                  <MessageSquare size={13} /> Notas <span style={{ color: T.textFaint }}>(opcional)</span>
                 </label>
                 <textarea
                   style={{ ...s.input, height: 72, resize: "none" as const, paddingTop: 10 }}
@@ -623,14 +628,14 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
             <h2 style={{ ...s.cardTitle, fontSize: "1.4rem", marginBottom: 8 }}>
               ¡Turno reservado!
             </h2>
-            <p style={{ color: "#71717a", fontSize: 14, marginBottom: 24 }}>
+            <p style={{ color: T.textMuted, fontSize: 14, marginBottom: 24 }}>
               Tu reserva fue confirmada exitosamente.
             </p>
 
             <div style={{ ...s.resumenBox, textAlign: "left" as const, marginBottom: 28 }}>
               <div style={s.resumenRow}>
-                <Scissors size={12} color={rubroColor} />
-                <span><strong style={{ color: "#f4f4f5" }}>{servicio?.nombre}</strong></span>
+                <RubroIcon size={12} color={rubroColor} />
+                <span><strong style={{ color: T.textPrimary }}>{servicio?.nombre}</strong></span>
               </div>
               <div style={s.resumenRow}>
                 <CalendarDays size={12} color={rubroColor} />
@@ -646,8 +651,8 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
               </div>
             </div>
 
-            <p style={{ color: "#52525b", fontSize: 12, marginBottom: 20 }}>
-              Código de reserva: <code style={{ color: "#71717a", fontFamily: "monospace" }}>#{turnoCreado.id.slice(-8).toUpperCase()}</code>
+            <p style={{ color: T.textFaint, fontSize: 12, marginBottom: 20 }}>
+              Código de reserva: <code style={{ color: T.textMuted, fontFamily: "monospace" }}>#{turnoCreado.id.slice(-8).toUpperCase()}</code>
             </p>
 
             <button
@@ -683,11 +688,42 @@ export default function ReservarClient({ tenant, serviciosIniciales }: Props) {
   );
 }
 
+// ── Tema (personalizable por tenant: colorReserva + temaReserva) ──
+
+type Tokens = ReturnType<typeof crearTokens>;
+
+function crearTokens(claro: boolean) {
+  return claro
+    ? {
+        claro: true,
+        bg: "#ffffff", card: "#ffffff",
+        surface2: "#f4f4f5", surface3: "#f0f0f1", surface4: "#ececed",
+        border005: "rgba(0,0,0,0.05)", border06: "rgba(0,0,0,0.06)",
+        border07: "rgba(0,0,0,0.07)",  border08: "rgba(0,0,0,0.08)",
+        border10: "rgba(0,0,0,0.10)",  border12: "rgba(0,0,0,0.12)",
+        textPrimary: "#18181b", textSecondary: "#27272a", textTertiary: "#52525b",
+        textMuted: "#6b7280", textFaint: "#9ca3af", textFainter: "#c4c4c8",
+        errorText: "#dc2626",
+      }
+    : {
+        claro: false,
+        bg: "#0a0a0a", card: "#111111",
+        surface2: "#141414", surface3: "#161616", surface4: "#191919",
+        border005: "rgba(255,255,255,0.05)", border06: "rgba(255,255,255,0.06)",
+        border07: "rgba(255,255,255,0.07)",  border08: "rgba(255,255,255,0.08)",
+        border10: "rgba(255,255,255,0.10)",  border12: "rgba(255,255,255,0.12)",
+        textPrimary: "#f4f4f5", textSecondary: "#e4e4e7", textTertiary: "#a1a1aa",
+        textMuted: "#71717a", textFaint: "#52525b", textFainter: "#3f3f46",
+        errorText: "#f87171",
+      };
+}
+
 // ── Estilos ────────────────────────────────────────────────────
 
-const s: Record<string, React.CSSProperties> = {
+function crearEstilos(T: Tokens): Record<string, React.CSSProperties> {
+  return {
   shell: {
-    minHeight: "100vh", background: "#0a0a0a",
+    minHeight: "100vh", background: T.bg,
     display: "flex", justifyContent: "center",
     padding: "1.5rem 1rem 3rem", position: "relative", overflowX: "hidden",
   },
@@ -703,7 +739,7 @@ const s: Record<string, React.CSSProperties> = {
   header: {
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "16px 20px",
-    background: "#111", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16,
+    background: T.card, border: `1px solid ${T.border07}`, borderRadius: 16,
   },
   headerInner: { display: "flex", alignItems: "center", gap: 12 },
   logo: { width: 44, height: 44, borderRadius: 12, objectFit: "cover" },
@@ -711,18 +747,18 @@ const s: Record<string, React.CSSProperties> = {
     width: 44, height: 44, borderRadius: 12,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
-  headerNombre: { margin: 0, fontSize: 15, fontWeight: 700, color: "#f4f4f5" },
-  headerSub:    { margin: 0, fontSize: 12, color: "#71717a", display: "flex", alignItems: "center" },
+  headerNombre: { margin: 0, fontSize: 15, fontWeight: 700, color: T.textPrimary },
+  headerSub:    { margin: 0, fontSize: 12, color: T.textMuted, display: "flex", alignItems: "center" },
   igLink: {
     width: 32, height: 32, borderRadius: 8,
-    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+    background: T.border005, border: `1px solid ${T.border08}`,
     display: "flex", alignItems: "center", justifyContent: "center",
-    color: "#71717a", textDecoration: "none",
+    color: T.textMuted, textDecoration: "none",
   },
   progressWrap: {
     display: "flex", alignItems: "center", justifyContent: "center", gap: 0,
     padding: "12px 16px",
-    background: "#111", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 12,
+    background: T.card, border: `1px solid ${T.border07}`, borderRadius: 12,
   },
   progressStep: { display: "flex", alignItems: "center", gap: 6 },
   progressDot: {
@@ -731,7 +767,7 @@ const s: Record<string, React.CSSProperties> = {
   progressLine: { width: 28, height: 1, margin: "0 4px" },
   progressLabel: { fontSize: 11, fontWeight: 500, whiteSpace: "nowrap" as const },
   card: {
-    background: "#111", border: "1px solid rgba(255,255,255,0.08)",
+    background: T.card, border: `1px solid ${T.border08}`,
     borderRadius: 20, padding: "1.5rem",
     display: "flex", flexDirection: "column", gap: 16,
   },
@@ -740,51 +776,51 @@ const s: Record<string, React.CSSProperties> = {
     width: 36, height: 36, borderRadius: 10, flexShrink: 0,
     display: "flex", alignItems: "center", justifyContent: "center",
   },
-  cardTitle: { margin: 0, fontSize: "1.1rem", fontWeight: 700, color: "#f4f4f5" },
-  cardDesc:  { margin: "2px 0 0", fontSize: 12, color: "#71717a" },
+  cardTitle: { margin: 0, fontSize: "1.1rem", fontWeight: 700, color: T.textPrimary },
+  cardDesc:  { margin: "2px 0 0", fontSize: 12, color: T.textMuted },
   backBtn: {
     display: "flex", alignItems: "center", gap: 6,
     background: "transparent", border: "none",
-    color: "#52525b", fontSize: 12, cursor: "pointer",
+    color: T.textFaint, fontSize: 12, cursor: "pointer",
     padding: "0 0 4px", width: "fit-content",
   },
   seleccionada: {
     display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" as const,
-    padding: "8px 12px", background: "#161616",
-    border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10,
+    padding: "8px 12px", background: T.surface3,
+    border: `1px solid ${T.border07}`, borderRadius: 10,
     fontSize: 13,
   },
   serviciosGrid: { display: "flex", flexDirection: "column", gap: 8 },
   servicioCard: {
-    background: "#191919", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14,
+    background: T.surface4, border: `1px solid ${T.border08}`, borderRadius: 14,
     padding: "14px 16px", textAlign: "left" as const, cursor: "pointer",
     transition: "all 0.15s", display: "flex", flexDirection: "column", gap: 4,
   },
   servicioTop: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  servicioNombre: { fontSize: 14, fontWeight: 600, color: "#f4f4f5" },
+  servicioNombre: { fontSize: 14, fontWeight: 600, color: T.textPrimary },
   servicioPrecio: { fontSize: 14, fontWeight: 700 },
-  servicioDesc:   { margin: 0, fontSize: 12, color: "#71717a" },
+  servicioDesc:   { margin: 0, fontSize: 12, color: T.textMuted },
   servicioDuracion: {
     display: "flex", alignItems: "center", gap: 4,
-    fontSize: 11, color: "#52525b", marginTop: 4,
+    fontSize: 11, color: T.textFaint, marginTop: 4,
   },
   emptyState: {
     display: "flex", flexDirection: "column", alignItems: "center",
-    gap: 8, padding: "2rem", color: "#52525b", fontSize: 13,
+    gap: 8, padding: "2rem", color: T.textFaint, fontSize: 13,
   },
-  calendar: { background: "#141414", borderRadius: 14, padding: "14px 12px", border: "1px solid rgba(255,255,255,0.07)" },
+  calendar: { background: T.surface2, borderRadius: 14, padding: "14px 12px", border: `1px solid ${T.border07}` },
   calNav: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
   calNavBtn: {
-    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 8, padding: 6, color: "#a1a1aa", cursor: "pointer",
+    background: T.border005, border: `1px solid ${T.border08}`,
+    borderRadius: 8, padding: 6, color: T.textTertiary, cursor: "pointer",
     display: "flex", alignItems: "center",
   },
-  calMes: { fontSize: 13, fontWeight: 600, color: "#f4f4f5" },
+  calMes: { fontSize: 13, fontWeight: 600, color: T.textPrimary },
   calDiasHeader: {
     display: "grid", gridTemplateColumns: "repeat(7, 1fr)",
     marginBottom: 8, textAlign: "center" as const,
   },
-  calDiaLabel: { fontSize: 11, color: "#52525b", fontWeight: 600, padding: "4px 0" },
+  calDiaLabel: { fontSize: 11, color: T.textFaint, fontWeight: 600, padding: "4px 0" },
   calGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 },
   calDia: {
     aspectRatio: "1", display: "flex", alignItems: "center", justifyContent: "center",
@@ -807,27 +843,27 @@ const s: Record<string, React.CSSProperties> = {
     display: "flex", alignItems: "center", gap: 8,
     padding: "10px 14px", background: "rgba(239,68,68,0.08)",
     border: "1px solid rgba(239,68,68,0.2)", borderRadius: 10,
-    color: "#f87171", fontSize: 13,
+    color: T.errorText, fontSize: 13,
   },
   resumenBox: {
-    background: "#141414", border: "1px solid rgba(255,255,255,0.07)",
+    background: T.surface2, border: `1px solid ${T.border07}`,
     borderRadius: 12, padding: "12px 14px",
     display: "flex", flexDirection: "column", gap: 8,
   },
-  resumenRow: { display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#a1a1aa" },
+  resumenRow: { display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: T.textTertiary },
   formGrid: { display: "flex", flexDirection: "column", gap: 12 },
   formGroup: { display: "flex", flexDirection: "column", gap: 6 },
   label: {
-    fontSize: 12, color: "#71717a", fontWeight: 500,
+    fontSize: 12, color: T.textMuted, fontWeight: 500,
     display: "flex", alignItems: "center", gap: 5,
   },
   input: {
     width: "100%", padding: "10px 12px",
-    background: "#141414", border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 10, color: "#f4f4f5", fontSize: 14,
+    background: T.surface2, border: `1px solid ${T.border10}`,
+    borderRadius: 10, color: T.textPrimary, fontSize: 14,
     fontFamily: "inherit", transition: "border-color 0.15s",
   },
-  fieldError: { fontSize: 11, color: "#f87171" },
+  fieldError: { fontSize: 11, color: T.errorText },
   btnConfirmar: {
     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
     padding: "12px 24px", borderRadius: 12, border: "none",
@@ -843,11 +879,12 @@ const s: Record<string, React.CSSProperties> = {
     width: 80, height: 80, borderRadius: "50%",
     display: "flex", alignItems: "center", justifyContent: "center",
     margin: "0 auto 16px",
-    background: "rgba(34,197,94,0.06)",
+    background: T.claro ? "rgba(34,197,94,0.10)" : "rgba(34,197,94,0.06)",
   },
   footer: {
-    textAlign: "center" as const, fontSize: 12, color: "#3f3f46",
+    textAlign: "center" as const, fontSize: 12, color: T.textFainter,
     display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
     paddingTop: 8,
   },
-};
+  };
+}

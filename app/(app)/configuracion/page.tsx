@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import {
   CalendarDays, MapPin, Phone, Mail, Save, Upload,
   CheckCircle, AlertCircle, Globe, Instagram, Facebook,
-  ExternalLink, Link2, Building2, Scissors,
+  ExternalLink, Link2, Building2, Scissors, Car, Sparkles,
+  Stethoscope, HelpCircle, Palette, Moon, Sun,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -25,9 +26,11 @@ type Negocio = {
   provincia:   string | null;
   sitioWeb:    string | null;
   instagram:   string | null;
-  facebook:    string | null;
-  rubro:       string | null;
-  plan:        string;
+  facebook:     string | null;
+  rubro:        string | null;
+  colorReserva: string | null;
+  temaReserva:  string | null;
+  plan:         string;
 };
 
 type Toast = { tipo: "ok" | "error"; mensaje: string } | null;
@@ -39,6 +42,25 @@ const RUBRO_LABELS: Record<string, string> = {
   MEDICO:    "Médico / Salud",
   OTRO:      "Otro",
 };
+
+// Mismo mapeo que app/reservar/[slug]/ReservarClient.tsx — mantener en sync
+const RUBRO_ICON: Record<string, React.ElementType> = {
+  BARBERIA:  Scissors,
+  DETAILING: Car,
+  ESTETICA:  Sparkles,
+  MEDICO:    Stethoscope,
+  OTRO:      HelpCircle,
+};
+
+const RUBRO_COLOR_DEFAULT: Record<string, string> = {
+  BARBERIA:  "#3b82f6",
+  DETAILING: "#8b5cf6",
+  ESTETICA:  "#ec4899",
+  MEDICO:    "#10b981",
+  OTRO:      "#71717a",
+};
+
+const COLOR_PRESETS = ["#3b82f6", "#8b5cf6", "#ec4899", "#10b981", "#f59e0b", "#ef4444", "#06b6d4", "#71717a"];
 
 // ── Toast ─────────────────────────────────────────────────────
 
@@ -219,6 +241,95 @@ export default function ConfiguracionPage() {
         </div>
       )}
 
+      {/* Personalización de la página de reservas */}
+      <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-base)", borderRadius: 16, padding: "20px", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Palette size={14} color="var(--text-faint)" />
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>Estilo de la página de reservas</p>
+        </div>
+
+        {/* Color de acento */}
+        <div>
+          <label style={labelStyle}>Color</label>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {COLOR_PRESETS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, colorReserva: c }))}
+                title={c}
+                style={{
+                  width: 28, height: 28, borderRadius: "50%", background: c,
+                  border: (form.colorReserva ?? RUBRO_COLOR_DEFAULT[form.rubro ?? "OTRO"]) === c
+                    ? "2px solid var(--text-primary)" : "2px solid transparent",
+                  boxShadow: "0 0 0 1px var(--border-base)",
+                  cursor: "pointer", padding: 0,
+                }}
+              />
+            ))}
+
+            {/* Custom color picker */}
+            <label style={{
+              width: 28, height: 28, borderRadius: "50%", cursor: "pointer",
+              overflow: "hidden", position: "relative",
+              border: "2px solid var(--border-md)", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "var(--bg-input)",
+            }} title="Color personalizado">
+              <input
+                type="color"
+                value={form.colorReserva ?? RUBRO_COLOR_DEFAULT[form.rubro ?? "OTRO"] ?? "#3b82f6"}
+                onChange={(e) => setForm(prev => ({ ...prev, colorReserva: e.target.value }))}
+                style={{ position: "absolute", inset: -4, border: "none", padding: 0, cursor: "pointer" }}
+              />
+            </label>
+
+            {form.colorReserva && (
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, colorReserva: null }))}
+                style={{ fontSize: 11.5, color: "var(--text-faint)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}
+              >
+                Usar color del rubro
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Fondo claro / oscuro */}
+        <div>
+          <label style={labelStyle}>Fondo</label>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setForm(prev => ({ ...prev, temaReserva: "OSCURO" }))}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                background: (form.temaReserva ?? "OSCURO") === "OSCURO" ? "rgba(30,64,175,0.14)" : "var(--bg-input)",
+                border: `1px solid ${(form.temaReserva ?? "OSCURO") === "OSCURO" ? "rgba(30,64,175,0.45)" : "var(--border-md)"}`,
+                color: (form.temaReserva ?? "OSCURO") === "OSCURO" ? "#60a5fa" : "var(--text-secondary)",
+              }}
+            >
+              <Moon size={14} /> Oscuro
+            </button>
+            <button
+              type="button"
+              onClick={() => setForm(prev => ({ ...prev, temaReserva: "CLARO" }))}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "8px 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer",
+                background: form.temaReserva === "CLARO" ? "rgba(30,64,175,0.14)" : "var(--bg-input)",
+                border: `1px solid ${form.temaReserva === "CLARO" ? "rgba(30,64,175,0.45)" : "var(--border-md)"}`,
+                color: form.temaReserva === "CLARO" ? "#60a5fa" : "var(--text-secondary)",
+              }}
+            >
+              <Sun size={14} /> Blanco
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Logo */}
       <div style={{ background: "var(--bg-card)", border: "1px solid var(--border-base)", borderRadius: 16, padding: "20px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -259,10 +370,42 @@ export default function ConfiguracionPage() {
       </div>
 
       {/* Datos del negocio */}
-      <Section titulo="Datos del negocio" icon={<Scissors size={14} color="var(--text-faint)" />}>
+      <Section titulo="Datos del negocio" icon={
+        (() => {
+          const IconoRubro = RUBRO_ICON[form.rubro ?? "OTRO"] ?? HelpCircle;
+          return <IconoRubro size={14} color="var(--text-faint)" />;
+        })()
+      }>
         <div>
           <label style={labelStyle}>Nombre del negocio *</label>
           <input type="text" value={form.nombre ?? ""} onChange={set("nombre")} placeholder="Ej: Barbería Sol" style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>Rubro</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {(Object.keys(RUBRO_LABELS) as Array<keyof typeof RUBRO_LABELS>).map((r) => {
+              const Icono = RUBRO_ICON[r];
+              const activo = form.rubro === r;
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, rubro: r }))}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600,
+                    cursor: "pointer", transition: "all 0.15s",
+                    background: activo ? "rgba(30,64,175,0.14)" : "var(--bg-input)",
+                    border: `1px solid ${activo ? "rgba(30,64,175,0.45)" : "var(--border-md)"}`,
+                    color: activo ? "#60a5fa" : "var(--text-secondary)",
+                  }}
+                >
+                  <Icono size={14} />
+                  {RUBRO_LABELS[r]}
+                </button>
+              );
+            })}
+          </div>
         </div>
         <div>
           <label style={labelStyle}>Descripción</label>

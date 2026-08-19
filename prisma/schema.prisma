@@ -31,6 +31,8 @@ model Tenant {
 
   // ── NUEVO ──
   rubro          RubroTipo?
+  colorReserva   String?
+  temaReserva    TemaReserva @default(OSCURO)
   customDomain   String?   @unique
   domainVerified Boolean   @default(false)
   notificacionesWA Boolean   @default(true)
@@ -177,6 +179,11 @@ enum RubroTipo {
   ESTETICA
   MEDICO
   OTRO
+}
+
+enum TemaReserva {
+  OSCURO
+  CLARO
 }
 
 enum EstadoTurno {

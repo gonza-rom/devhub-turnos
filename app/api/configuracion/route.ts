@@ -26,6 +26,8 @@ export async function GET() {
         facebook:    true,
         sitioWeb:    true,
         rubro:       true,
+        colorReserva: true,
+        temaReserva:  true,
         plan:        true,
       },
     });
@@ -51,6 +53,20 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "El nombre del negocio es obligatorio" }, { status: 400 });
     }
 
+    const RUBROS_VALIDOS = ["BARBERIA", "DETAILING", "ESTETICA", "MEDICO", "OTRO"];
+    if (body.rubro !== undefined && body.rubro !== null && !RUBROS_VALIDOS.includes(body.rubro)) {
+      return NextResponse.json({ error: "Rubro inválido" }, { status: 400 });
+    }
+
+    if (body.colorReserva !== undefined && body.colorReserva !== null && !/^#[0-9a-fA-F]{6}$/.test(body.colorReserva)) {
+      return NextResponse.json({ error: "Color inválido (formato #RRGGBB)" }, { status: 400 });
+    }
+
+    const TEMAS_VALIDOS = ["OSCURO", "CLARO"];
+    if (body.temaReserva !== undefined && !TEMAS_VALIDOS.includes(body.temaReserva)) {
+      return NextResponse.json({ error: "Tema inválido" }, { status: 400 });
+    }
+
     const tenant = await prisma.tenant.update({
       where: { id: tenantId },
       data: {
@@ -64,6 +80,9 @@ export async function PUT(req: Request) {
         facebook:    body.facebook?.trim()    || null,
         sitioWeb:    body.sitioWeb?.trim()    || null,
         ...(body.logoUrl !== undefined && { logoUrl: body.logoUrl }),
+        ...(body.rubro !== undefined && { rubro: body.rubro }),
+        ...(body.colorReserva !== undefined && { colorReserva: body.colorReserva }),
+        ...(body.temaReserva !== undefined && { temaReserva: body.temaReserva }),
       },
       select: {
         id:          true,
@@ -79,6 +98,8 @@ export async function PUT(req: Request) {
         facebook:    true,
         sitioWeb:    true,
         rubro:       true,
+        colorReserva: true,
+        temaReserva:  true,
       },
     });
 

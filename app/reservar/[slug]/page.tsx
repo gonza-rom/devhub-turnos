@@ -31,16 +31,18 @@ export default async function ReservarPage({ params }: { params: Promise<{ slug:
   const tenant = await prisma.tenant.findUnique({
     where:  { slug, activo: true },
     select: {
-      id:          true,
-      nombre:      true,
-      slug:        true,
-      rubro:       true,
-      descripcion: true,
-      logoUrl:     true,
-      telefono:    true,
-      ciudad:      true,
-      provincia:   true,
-      instagram:   true,
+      id:            true,
+      nombre:        true,
+      slug:          true,
+      rubro:         true,
+      colorReserva:  true,
+      temaReserva:   true,
+      descripcion:   true,
+      logoUrl:       true,
+      telefono:      true,
+      ciudad:        true,
+      provincia:     true,
+      instagram:     true,
     },
   });
 
