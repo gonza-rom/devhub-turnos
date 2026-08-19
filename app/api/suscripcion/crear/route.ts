@@ -49,7 +49,7 @@ export async function POST() {
     }
 
     const payerEmail = process.env.MP_TEST_PAYER_EMAIL ?? usuarioTenant.email;
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
     const preapproval = await createPreapproval({
       tenantId,

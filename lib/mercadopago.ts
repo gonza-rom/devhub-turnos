@@ -53,8 +53,9 @@ export type CreatePreapprovalInput = {
 };
 
 export async function createPreapproval(input: CreatePreapprovalInput): Promise<MPPreapproval> {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!appUrl) throw new Error("NEXT_PUBLIC_APP_URL no está definido en .env");
+  const appUrlRaw = process.env.NEXT_PUBLIC_APP_URL;
+  if (!appUrlRaw) throw new Error("NEXT_PUBLIC_APP_URL no está definido en .env");
+  const appUrl = appUrlRaw.replace(/\/$/, "");
 
   const startDate = new Date().toISOString();
   const endDate   = new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 5).toISOString();
