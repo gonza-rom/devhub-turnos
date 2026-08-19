@@ -3,13 +3,13 @@
 // Supabase redirige aquí después del link de recuperación
 // El usuario ingresa y confirma su nueva contraseña
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Store, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
-export default function NuevaPasswordPage() {
+function NuevaPasswordForm() {
   const [password,   setPassword]   = useState("");
   const [confirmar,  setConfirmar]  = useState("");
   const [showPass,   setShowPass]   = useState(false);
@@ -19,6 +19,7 @@ export default function NuevaPasswordPage() {
   const [listo,      setListo]      = useState(false);
   const [sesionOk,   setSesionOk]   = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const passLen    = password.length >= 8;
   const passUpper  = /[A-Z]/.test(password);
@@ -26,18 +27,30 @@ export default function NuevaPasswordPage() {
   const passStrength = [passLen, passUpper, passNum].filter(Boolean).length;
   const coinciden  = password === confirmar && confirmar.length > 0;
 
-  // Supabase maneja el token automáticamente via el hash de la URL
-  // Solo verificamos que haya sesión activa
+  // detectSessionInUrl está en false (lib/supabase/client.ts), así que el
+  // código PKCE del link de recuperación (?code=...) hay que canjearlo a
+  // mano — igual que hace /auth/callback con el de confirmación de cuenta.
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setSesionOk(true);
-      else {
-        // No hay sesión — el link es inválido o expiró
-        router.replace("/auth/login?error=Link+expirado,+solicitá+uno+nuevo");
+    async function verificarSesion() {
+      const supabase = createClient();
+      const code = searchParams.get("code");
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error) {
+          setSesionOk(true);
+          return;
+        }
       }
-    });
-  }, [router]);
+
+      // Sin code en la URL (o el canje falló): puede que ya haya sesión
+      // de un intento anterior en esta misma pestaña.
+      const { data } = await supabase.auth.getSession();
+      if (data.session) setSesionOk(true);
+      else router.replace("/auth/login?error=Link+expirado,+solicitá+uno+nuevo");
+    }
+    verificarSesion();
+  }, [router, searchParams]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -202,6 +215,14 @@ export default function NuevaPasswordPage() {
       </div>
       <style>{authStyles}</style>
     </div>
+  );
+}
+
+export default function NuevaPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <NuevaPasswordForm />
+    </Suspense>
   );
 }
 
