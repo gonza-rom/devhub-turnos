@@ -4,7 +4,7 @@
 // - emailTrialVencido: se llama desde el cron job o al hacer login
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const FROM_EMAIL     = "DevHub POS <devhub@jmrmarroquineria.com.ar>"; // cambiá por tu dominio verificado en Resend
+const FROM_EMAIL     = "DevHub Turnos <notificaciones@devhub.com.ar>";
 const APP_URL        = (process.env.NEXT_PUBLIC_APP_URL ?? "https://devhub-pos.vercel.app").replace(/\/$/, "");
 
 async function enviarEmail(to: string, subject: string, html: string): Promise<boolean> {
@@ -44,7 +44,7 @@ function templateBase(contenido: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DevHub POS</title>
+  <title>DevHub Turnos</title>
 </head>
 <body style="margin:0;padding:0;background:#0a0a0a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 20px;">
@@ -57,8 +57,8 @@ function templateBase(contenido: string): string {
             <td align="center" style="padding-bottom:32px;">
               <table cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.25);border-radius:10px;padding:10px 14px;">
-                    <span style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;">DevHub POS</span>
+                  <td style="background:rgba(37,99,235,0.12);border:1px solid rgba(37,99,235,0.25);border-radius:10px;padding:10px 14px;">
+                    <span style="font-size:16px;font-weight:700;color:#fff;letter-spacing:-0.3px;">DevHub Turnos</span>
                   </td>
                 </tr>
               </table>
@@ -76,7 +76,7 @@ function templateBase(contenido: string): string {
           <tr>
             <td align="center" style="padding-top:24px;">
               <p style="margin:0;font-size:12px;color:#3f3f46;">
-                DevHub POS · Si tenés preguntas respondé este email
+                DevHub Turnos · Si tenés preguntas respondé este email
               </p>
             </td>
           </tr>
@@ -102,7 +102,7 @@ export async function emailPagoFallido({
   const html = templateBase(`
     <!-- Ícono -->
     <div style="text-align:center;margin-bottom:24px;">
-      <div style="display:inline-block;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
+      <div style="display:inline-block;background:rgba(37,99,235,0.1);border:1px solid rgba(37,99,235,0.25);border-radius:50%;width:64px;height:64px;line-height:64px;text-align:center;">
         <span style="font-size:28px;">⚠️</span>
       </div>
     </div>
@@ -116,8 +116,8 @@ export async function emailPagoFallido({
     </p>
 
     <!-- Info box -->
-    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:12px;padding:20px;margin-bottom:28px;">
-      <p style="margin:0 0 8px;font-size:13px;color:#f87171;font-weight:600;">¿Qué pasó?</p>
+    <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.2);border-radius:12px;padding:20px;margin-bottom:28px;">
+      <p style="margin:0 0 8px;font-size:13px;color:#60a5fa;font-weight:600;">¿Qué pasó?</p>
       <p style="margin:0;font-size:13px;color:#a1a1aa;line-height:1.6;">
         MercadoPago rechazó el cobro de tu suscripción Plan Pro. Tu cuenta fue cambiada al plan gratuito temporalmente.
       </p>
@@ -126,7 +126,7 @@ export async function emailPagoFallido({
     <!-- Lo que perdés -->
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:28px;">
       <p style="margin:0 0 12px;font-size:13px;color:#71717a;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Con el plan gratuito perdés</p>
-      <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">❌ Productos ilimitados</p>
+      <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">❌ Servicios ilimitados</p>
       <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">❌ Múltiples usuarios</p>
       <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">❌ Estadísticas avanzadas</p>
     </div>
@@ -134,7 +134,7 @@ export async function emailPagoFallido({
     <!-- CTA -->
     <div style="text-align:center;margin-bottom:20px;">
       <a href="${APP_URL}/configuracion/plan"
-        style="display:inline-block;background:#DC2626;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
+        style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
         Actualizar método de pago →
       </a>
     </div>
@@ -145,7 +145,7 @@ export async function emailPagoFallido({
     </p>
   `);
 
-  return enviarEmail(emailDestino, "⚠️ Problema con tu pago — DevHub POS", html);
+  return enviarEmail(emailDestino, "⚠️ Problema con tu pago — DevHub Turnos", html);
 }
 
 // ── Email: Trial vencido ──────────────────────────────────────
@@ -177,14 +177,14 @@ export async function emailTrialVencido({
     <!-- Lo que usaste -->
     <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:20px;margin-bottom:24px;">
       <p style="margin:0 0 12px;font-size:13px;color:#71717a;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Con el Plan Pro seguís teniendo</p>
-      <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">✅ Productos ilimitados</p>
+      <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">✅ Servicios ilimitados</p>
       <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">✅ Hasta 10 usuarios</p>
       <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">✅ Estadísticas y reportes</p>
       <p style="margin:4px 0;font-size:13px;color:#a1a1aa;">✅ Soporte prioritario</p>
     </div>
 
     <!-- Precio -->
-    <div style="background:rgba(220,38,38,0.06);border:1px solid rgba(220,38,38,0.2);border-radius:12px;padding:20px;margin-bottom:28px;text-align:center;">
+    <div style="background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.2);border-radius:12px;padding:20px;margin-bottom:28px;text-align:center;">
       <p style="margin:0 0 4px;font-size:13px;color:#71717a;">Plan Pro</p>
       <p style="margin:0;font-size:28px;font-weight:800;color:#fff;">$35.000 <span style="font-size:14px;font-weight:400;color:#71717a;">ARS/mes</span></p>
       <p style="margin:4px 0 0;font-size:12px;color:#52525b;">Sin permanencia · Cancelás cuando querés</p>
@@ -193,7 +193,7 @@ export async function emailTrialVencido({
     <!-- CTA -->
     <div style="text-align:center;margin-bottom:20px;">
       <a href="${APP_URL}/configuracion/plan"
-        style="display:inline-block;background:#DC2626;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
+        style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
         Activar Plan Pro →
       </a>
     </div>
@@ -204,7 +204,7 @@ export async function emailTrialVencido({
     </p>
   `);
 
-  return enviarEmail(emailDestino, "⏰ Tu prueba gratuita terminó — DevHub POS", html);
+  return enviarEmail(emailDestino, "⏰ Tu prueba gratuita terminó — DevHub Turnos", html);
 }
 
 // ── Email: Trial por vencer (día 5) ──────────────────────────
@@ -229,7 +229,7 @@ export async function emailTrialPorVencer({
 
     <!-- Título -->
     <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#fff;text-align:center;">
-      Te ${diasRestantes === 1 ? "queda 1 día" : `quedan ${diasRestantes} días"}`} de prueba
+      Te ${diasRestantes === 1 ? "queda 1 día" : `quedan ${diasRestantes} días`} de prueba
     </h1>
     <p style="margin:0 0 28px;font-size:14px;color:#71717a;text-align:center;line-height:1.6;">
       Hola ${nombreUsuario}, tu prueba de <strong style="color:#a1a1aa;">${nombreComercio}</strong> está por terminar.
@@ -246,7 +246,7 @@ export async function emailTrialPorVencer({
     <!-- CTA -->
     <div style="text-align:center;margin-bottom:20px;">
       <a href="${APP_URL}/configuracion/plan"
-        style="display:inline-block;background:#DC2626;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
+        style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:13px 32px;border-radius:10px;font-size:15px;font-weight:600;">
         Ver planes →
       </a>
     </div>
@@ -256,5 +256,5 @@ export async function emailTrialPorVencer({
     </p>
   `);
 
-  return enviarEmail(emailDestino, `🕐 Te ${diasRestantes === 1 ? "queda 1 día" : `quedan ${diasRestantes} días`} de prueba — DevHub POS`, html);
+  return enviarEmail(emailDestino, `🕐 Te ${diasRestantes === 1 ? "queda 1 día" : `quedan ${diasRestantes} días`} de prueba — DevHub Turnos`, html);
 }
