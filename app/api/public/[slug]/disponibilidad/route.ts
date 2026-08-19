@@ -10,6 +10,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { fechaHoraArgentina, diaCompletoArgentina, minutosDelDiaArgentina } from "@/lib/tz";
 
 export async function GET(
   req: NextRequest,
@@ -46,8 +47,7 @@ export async function GET(
     // ── Parsear fecha ─────────────────────────────────────────
     const [year, month, day] = fechaStr.split("-").map(Number);
     const diaSemana    = new Date(year, month - 1, day).getDay(); // 0=Dom ... 6=Sáb
-    const inicioDelDia = new Date(year, month - 1, day, 0, 0, 0);
-    const finDelDia    = new Date(year, month - 1, day, 23, 59, 59);
+    const { inicio: inicioDelDia, fin: finDelDia } = diaCompletoArgentina(fechaStr);
 
     // ── 1. Verificar bloqueos ─────────────────────────────────
     const bloqueo = await prisma.bloqueoHorario.findFirst({
@@ -112,12 +112,12 @@ export async function GET(
       const slotFin    = slotInicio + duracion;
 
       // Descartar slots en el pasado (solo relevante si la fecha es hoy)
-      const slotDate = new Date(year, month - 1, day, sh, sm);
+      const slotDate = fechaHoraArgentina(fechaStr, slot);
       if (slotDate <= ahora) return false;
 
       // Descartar slots que se solapen con algún turno existente
       for (const turno of turnosDelDia) {
-        const tInicio = turno.fechaHora.getHours() * 60 + turno.fechaHora.getMinutes();
+        const tInicio = minutosDelDiaArgentina(turno.fechaHora);
         const tFin    = tInicio + turno.duracionMin;
         if (slotInicio < tFin && slotFin > tInicio) return false;
       }

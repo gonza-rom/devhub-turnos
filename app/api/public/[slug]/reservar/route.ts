@@ -15,22 +15,12 @@ import {
 } from "@/lib/whatsapp";
 import { checkRateLimit, obtenerIp } from "@/lib/rate-limit";
 import { crearTurnoSinSolapamiento, TurnoSolapadoError } from "@/lib/reservas";
+import { formatFechaArgentina, horaArgentina } from "@/lib/tz";
 
 // ── Helpers de formato ────────────────────────────────────────
 
-const MESES = [
-  "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
-];
-const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
-
-function formatFecha(d: Date): string {
-  return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]}`;
-}
-
-function formatHora(d: Date): string {
-  return `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
-}
+const formatFecha = formatFechaArgentina;
+const formatHora  = horaArgentina;
 
 function formatDuracion(min: number): string {
   if (min < 60) return `${min} min`;
