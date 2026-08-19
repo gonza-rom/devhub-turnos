@@ -6,7 +6,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Eye, EyeOff, Store, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, CalendarDays, AlertCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 function NuevaPasswordForm() {
@@ -117,9 +117,9 @@ function NuevaPasswordForm() {
 
         <div className="auth-logo-wrap">
           <div className="auth-logo-icon">
-            <Store className="h-5 w-5" style={{ color: "#DC2626" }} />
+            <CalendarDays className="h-5 w-5" style={{ color: "#3b82f6" }} />
           </div>
-          <span className="auth-logo-text">DevHub POS</span>
+          <span className="auth-logo-text">DevHub Turnos</span>
         </div>
 
         <div className="auth-heading">
@@ -234,7 +234,7 @@ const authStyles = `
   .auth-glow {
     position: fixed; top: -20%; left: 50%; transform: translateX(-50%);
     width: 600px; height: 400px;
-    background: radial-gradient(ellipse at center, rgba(220,38,38,0.11) 0%, transparent 70%);
+    background: radial-gradient(ellipse at center, rgba(30,64,175,0.13) 0%, transparent 70%);
     pointer-events: none; z-index: 0;
   }
   .auth-card {
@@ -245,8 +245,8 @@ const authStyles = `
   }
   .auth-logo-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 1.75rem; }
   .auth-logo-icon {
-    width: 36px; height: 36px; background: rgba(220,38,38,0.12);
-    border: 1px solid rgba(220,38,38,0.25); border-radius: 10px;
+    width: 36px; height: 36px; background: rgba(30,64,175,0.15);
+    border: 1px solid rgba(30,64,175,0.35); border-radius: 10px;
     display: flex; align-items: center; justify-content: center;
   }
   .auth-logo-text { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; }
@@ -271,7 +271,7 @@ const authStyles = `
     outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
   .auth-field input::placeholder { color: #3f3f46; }
-  .auth-field input:focus { border-color: rgba(220,38,38,0.45); box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+  .auth-field input:focus { border-color: rgba(30,64,175,0.55); box-shadow: 0 0 0 3px rgba(30,64,175,0.1); }
   .auth-field input:disabled { opacity: 0.5; cursor: not-allowed; }
   .auth-pass-wrap { position: relative; }
   .auth-pass-wrap input { padding-right: 42px; }
@@ -292,12 +292,12 @@ const authStyles = `
   .auth-submit {
     margin-top: 0.25rem; width: 100%; display: flex; align-items: center;
     justify-content: center; gap: 8px; padding: 11px 20px;
-    background: #DC2626; border: none; border-radius: 10px;
+    background: #1e40af; border: none; border-radius: 10px;
     color: #fff; font-size: 0.9375rem; font-weight: 600;
     font-family: 'DM Sans', sans-serif; cursor: pointer;
     transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   }
-  .auth-submit:hover:not(:disabled) { background: #B91C1C; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(220,38,38,0.3); }
+  .auth-submit:hover:not(:disabled) { background: #1e3a8a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(30,64,175,0.35); }
   .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
   .auth-spinner {
     display: inline-block; width: 18px; height: 18px;
@@ -306,6 +306,6 @@ const authStyles = `
   }
   @keyframes auth-spin { to { transform: rotate(360deg); } }
   .auth-footer { margin-top: 1.5rem; text-align: center; font-size: 0.8125rem; color: #52525b; }
-  .auth-footer a { color: #DC2626; text-decoration: none; font-weight: 600; }
-  .auth-footer a:hover { color: #ef4444; }
+  .auth-footer a { color: #3b82f6; text-decoration: none; font-weight: 600; }
+  .auth-footer a:hover { color: #60a5fa; }
 `;

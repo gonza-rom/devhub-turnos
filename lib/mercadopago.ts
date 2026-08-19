@@ -42,7 +42,7 @@ export type MPWebhookBody = {
 export const PLAN_PRO = {
   monto:  35000,
   moneda: "ARS",
-  nombre: "Plan Pro — DevHub POS",
+  nombre: "Plan Pro — DevHub Turnos",
 };
 
 export type CreatePreapprovalInput = {

@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
 
-export const metadata: Metadata = { title: "Iniciar sesión | DevHub POS" };
+export const metadata: Metadata = { title: "Iniciar sesión | DevHub Turnos" };
 
 export default function LoginPage() {
   return (

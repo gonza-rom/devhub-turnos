@@ -47,8 +47,8 @@ function CallbackHandler() {
         <div style={{ textAlign: "center" }}>
           <div style={{
             width: 40, height: 40, margin: "0 auto 1rem",
-            border: "3px solid rgba(220,38,38,0.25)",
-            borderTopColor: "#DC2626", borderRadius: "50%",
+            border: "3px solid rgba(30,64,175,0.25)",
+            borderTopColor: "#3b82f6", borderRadius: "50%",
             animation: "spin 0.7s linear infinite",
           }} />
           <p style={{ color: "#71717a", fontSize: "0.875rem", fontFamily: "sans-serif" }}>
@@ -75,16 +75,16 @@ function CallbackHandler() {
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: "1.5rem" }}>
           <div style={{
-            width: 36, height: 36, background: "rgba(220,38,38,0.12)",
-            border: "1px solid rgba(220,38,38,0.25)", borderRadius: 10,
+            width: 36, height: 36, background: "rgba(30,64,175,0.15)",
+            border: "1px solid rgba(30,64,175,0.35)", borderRadius: 10,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4M8 2v4M3 10h18"/>
             </svg>
           </div>
-          <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>DevHub POS</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>DevHub Turnos</span>
         </div>
 
         {/* Ícono check */}
@@ -103,12 +103,12 @@ function CallbackHandler() {
           ¡Cuenta activada!
         </h2>
         <p style={{ fontSize: "0.875rem", color: "#71717a", margin: "0 0 1.75rem", lineHeight: 1.6 }}>
-          Tu cuenta ya está lista. Ingresá con tu email y contraseña para empezar a usar DevHub POS.
+          Tu cuenta ya está lista. Ingresá con tu email y contraseña para empezar a usar DevHub Turnos.
         </p>
 
         <a href="/auth/login" style={{
           display: "inline-flex", alignItems: "center", gap: 8,
-          background: "#DC2626", color: "#fff", textDecoration: "none",
+          background: "#1e40af", color: "#fff", textDecoration: "none",
           padding: "11px 24px", borderRadius: 10, fontSize: "0.9375rem",
           fontWeight: 600,
         }}>

@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  return NextResponse.json({ ok: true, service: "DevHub POS Webhook" });
+  return NextResponse.json({ ok: true, service: "DevHub Turnos Webhook" });
 }
 
 export const dynamic = "force-dynamic";

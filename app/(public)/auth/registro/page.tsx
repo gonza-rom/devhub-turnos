@@ -2,7 +2,7 @@
 import { Metadata } from "next";
 import RegistroForm from "./RegistroForm";
 
-export const metadata: Metadata = { title: "Crear cuenta | DevHub POS" };
+export const metadata: Metadata = { title: "Crear cuenta | DevHub Turnos" };
 
 export default function RegistroPage() {
   return <RegistroForm />;
